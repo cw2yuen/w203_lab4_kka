@@ -1,0 +1,318 @@
+---
+title: 'Exploratory Analysis by Aaron'
+date: "August 17, 2017"
+geometry: margin=1.5cm
+output:
+  pdf_document: default
+  html_document: default
+---
+
+Reading and understanding the data schema:
+```{r}
+library(corrplot)
+library(car)
+
+setwd("C:\\Users\\aayuen\\Documents\\GitHub\\w203_lab4_kka")
+data = read.csv("crime.csv")
+nrow(data)
+colnames(data)
+```
+
+##Summary of Findings from EDA
+
+Types of Variables:
+
+1. Rates, averages, and probabilities - crmrte, prbarr, prbconv, prbpris, polpc, density, pctmin80, pctymle
+2. $ variables - taxpc, wcon, wtuc, wtrd, wfir, wser, wmfg, wfed, wsta, wloc
+3. Indicator variables - west, central, urban. No base category in dataset (e.g. non-west/central, rural)
+4. Not sure what this is - mix
+
+Potential Transformations:
+
+1. Percentage minority (pctmin80) data is between 0 - 100 whereas other percentage variables is between 0-1; We may want to transform this variable to keep things consistent from an interpretability perspective.
+2. Other than this, so far no obvious variable that needs transformation.
+
+Potential Outliers/Data Issues:
+
+1. Row 51 has prbarr > 1.0 which seems suspicious, given prbarr should between 0 and 1.
+2. There seems to be 10 rows where prbconv is > 1.0, which again is suspicious, given that prbconv should be between 0 and 1.
+3. Average Sentence in Days (avgsen) looks like it should be Average Sentence in Years.
+4. Row 81 looks like an outlier where wser is extremely high. 
+
+##Univariate Variable Analysis
+
+###1. county - County Identifier
+
+County is essentially a unique identifier (no duplicates).
+```{r}
+length(unique(data$county))
+nrow(data$county)
+```
+
+###2. year - Only 87
+
+The dataset only contains data for 1987.
+```{r}
+unique(data$year)
+```
+
+###3. crmrte - Crimes Committed per Person
+
+```{r}
+hist(data$crmrte, breaks=50,
+     main="Histogram of Crimes Committed per Person",
+     xlab="Crimes committed per person")
+```
+
+
+###4. prbarr - Probability of Arrest
+
+Row 51 has prbarr > 1.0 which seems suspicious, given prbarr should between 0 and 1.
+```{r}
+summary(data$prbarr)
+data[data$prbarr > 1,]
+hist(data$prbarr, breaks=50,
+     main="Histogram of Probability of Arrest",
+     xlab="Probability of arrest")
+```
+
+###5. prbconv - Probability of Conviction
+
+There seems to be 10 rows where prbconv is > 1.0, which again is suspicious, given that prbconv should be between 0 and 1.
+```{r}
+summary(data$prbconv)
+data[data$prbconv > 1,]
+hist(data$prbconv, breaks=50,
+     main="Histogram of Probability of Conviction",
+     xlab="Probability of conviction")
+```
+
+###6. prbpris - Probability of Prison Sentence
+
+```{r}
+summary(data$prbpris)
+hist(data$prbconv, breaks=50,
+     main="Histogram of Probability of Prison Sentence",
+     xlab="Probability of prison sentence")
+```
+
+###7. avgsen - Average Sentence in Days
+
+Really? Days? This looks more like average sentence in years...
+```{r}
+summary(data$avgsen)
+hist(data$avgsen, breaks=50,
+     main="Histogram of Average Sentence in Days",
+     xlab="Average sentence in days")
+```
+
+
+###8. polpc - Police per Capita
+
+Data looks expected.
+```{r}
+summary(data$polpc)
+hist(data$polpc, breaks=50,
+     main="Histogram of Police per Capita",
+     xlab="Police per capita")
+```
+
+
+###9. density - People per Sq. Mile
+
+Data looks expected.
+```{r}
+summary(data$density)
+hist(data$density, breaks=50,
+     main="Histogram of People per Sq. Mile",
+     xlab="Probability of people per sq. mile")
+```
+
+###10. taxpc - Tax Revenue per Capita
+
+Data looks expected.
+```{r}
+summary(data$taxpc)
+hist(data$taxpc, breaks=50,
+     main="Histogram of Tax Revenue per Capita",
+     xlab="Tax revenue er capita")
+```
+
+###11. west - Indicator of Western N.C.
+
+Data looks expected.
+```{r}
+summary(factor(data$west))
+barplot(table(data$west),
+        main="Non-Western N.C. vs Western N.C.")
+```
+
+###12. central - Indicator of Central N.C.
+
+Data looks expected.
+```{r}
+summary(factor(data$central))
+barplot(table(data$central),
+        main="Non-Central N.C. vs Central N.C.")
+```
+
+###13. urban - Indicator of whether in SMSA
+
+What does "SMSA" mean? Otherwise, data looks expected.
+```{r}
+summary(factor(data$urban))
+barplot(table(data$urban),
+        main="Non-Urban vs Urban")
+```
+
+###14. pctmin80 - Percentage of Minority, 1980
+
+Data looks expected. However, data is between 0 - 100 whereas other percentage variables is between 0-1; We may want to transform this variable to keep things consistent from an interpretability perspective.
+```{r}
+summary(data$pctmin80)
+hist(data$pctmin80, breaks=50,
+     main="Histogram of Percentage of Minority",
+     xlab="Probability of percentage of minority")
+```
+
+###15. wcon - Weekly Wage, Construction
+
+Data looks expected.
+```{r}
+summary(data$wcon)
+hist(data$wcon, breaks=50,
+     main="Histogram of Weekly Wage, Construction",
+     xlab="Weekly wage")
+```
+
+###16. wtuc - Weekly Wage, Trans, Util, Communication
+
+Data looks expected.
+```{r}
+summary(data$wtuc)
+hist(data$wtuc, breaks=50,
+     main="Histogram of Weekly Wage, Trans, Util, Communication",
+     xlab="Weekly wage")
+```
+
+###17. wtrd - Weekly Wage, Wholesale, Retail Trade
+
+Data looks expected.
+```{r}
+summary(data$wtrd)
+hist(data$wtrd, breaks=50,
+     main="Histogram of Weekly Wage, Wholesale, Retail Trade",
+     xlab="Weekly wage")
+```
+
+###18. wfir - Weekly Wage, Finance, Insurance, Real Estate
+
+Data looks expected.
+```{r}
+summary(data$wfir)
+hist(data$wfir, breaks=50,
+     main="Histogram of Weekly Wage, Finance, Insurance, Real Estate",
+     xlab="Weekly wage")
+```
+
+###19. wser - Weekly Wage, Service Industry
+
+There's a very extreme outlier here, need to take a closer look.
+```{r}
+summary(data$wser)
+hist(data$wser, breaks=50,
+     main="Histogram of Weekly Wage, Service Industry",
+     xlab="Weekly wage")
+data[data$wser > 2000, ]
+```
+
+###20. wmfg - Weekly Wage, Manufacturing
+
+Data looks expected.
+```{r}
+summary(data$wmfg)
+hist(data$wmfg, breaks=50,
+     main="Histogram of Weekly Wage, Manufacturing",
+     xlab="Weekly wage")
+```
+
+###21. wfed - Weekly Wage, Fed Employees
+
+Data looks expected.
+```{r}
+summary(data$wfed)
+hist(data$wfed, breaks=50,
+     main="Histogram of Weekly Wage, Fed Employees",
+     xlab="Weekly wage")
+```
+
+
+###22. wsta - Weekly Wage, State Employees
+
+Data looks expected.
+```{r}
+summary(data$wsta)
+hist(data$wsta, breaks=50,
+     main="Histogram of Weekly Wage, State Employees",
+     xlab="Weekly wage")
+```
+
+###23. wloc - Weekly Wage, Local Government Employees
+
+Data looks expected.
+```{r}
+summary(data$wsta)
+hist(data$wsta, breaks=50,
+     main="Histogram of Weekly Wage, Local Government Employees",
+     xlab="Weekly wage")
+```
+
+###24. mix - Offense Mix: Face-to-face/Other
+
+Not really sure what this variable means...
+```{r}
+summary(data$mix)
+hist(data$mix, breaks=50,
+     main="Histogram of Offense Mix: Face-to-face/Other",
+     xlab="Weekly wage")
+```
+
+###25. pctymle - Percent Young Male
+
+Data looks expected.
+```{r}
+summary(data$pctymle)
+hist(data$pctymle, breaks=50,
+     main="Histogram of Percent Young Male",
+     xlab="Percent of Young Male")
+```
+
+##Bi-variate Variable Analysis
+
+Here is the correlation plot for the non-indicator variables.
+
+Looking at the plot, looks like the following variables correlate with crmrte highly and positively:
+
+1. density - Makes sense since the crime rate tends to increase in more populated areas.
+2. taxpc - Somewhat makes sense since crime rate could increase in areas where there are more tax revenues collected.
+3. wage variables - Somewhat makes sense since as wages go up, there may be higher likelihood for crime. 
+
+Looks like the following variables correlate with crmrte highly and negatively:
+1. prbarr - Makes sense since if probabily of arrests go down, then there are more criminals out on the streets.
+2. prbconv - Makes sense since if probability of convictions go down, then there are more (potential) criminal out on the streets.
+
+```{r}
+corrplot(cor(data[ , (names(data) %in% c("crmrte", "prbarr", "prbconv", "prbpris", "polpc", "density", "pctmin80", "pctymle",
+                                          "taxpc", "wcon", "wtuc", "wtrd", "wfir", "wser", "wmfg", "wfed", "wsta", "wloc",
+                                          "mix"))]), 
+                                           method="circle", type="upper")
+```
+
+Let's focus more on the variables that correlate highly with crmrte.
+
+```{r}
+scatterplotMatrix(data[ , (names(data) %in% c("crmrte", "prbarr", "prbconv", "density",
+                                          "taxpc"))])
+```
+
+
