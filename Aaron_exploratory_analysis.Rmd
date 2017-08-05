@@ -19,7 +19,7 @@ Types of Variables:
 Potential Transformations:
 
 1. Percentage minority (pctmin80) data is between 0 - 100 whereas other percentage variables is between 0-1; We may want to transform this variable to keep things consistent from an interpretability perspective.
-2. Other than this, so far no obvious variable that needs transformation.
+2. Other than this, so far no obvious variable that needs transformation. There are some variables that maybe needs log transform to be less skewed.
 
 Potential Outliers/Data Issues:
 
