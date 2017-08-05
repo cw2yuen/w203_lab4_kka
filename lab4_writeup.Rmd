@@ -1,0 +1,41 @@
+---
+title: 'Lab 4: Reducing Crime'
+author: "Kim Vignola, Kiersten Hendersen, Aaron Yuen"
+date: "August 17, 2017"
+geometry: margin=1.5cm
+output:
+  pdf_document: default
+  html_document: default
+---
+
+#Section 1: Introduction
+TBD
+
+
+#Section 2: Exploratory Analysis
+TBD
+
+
+#Section 3: Model Building
+TBD
+
+
+#Section 4: Model Assumptions
+TBD
+
+
+#Section 5: Model Specifications
+TBD
+
+
+#Section 6: Model Summary
+TBD
+
+
+#Section 7: Causality
+TBD
+
+
+#Section 8: Conclusion
+TBD
+
