@@ -29,15 +29,23 @@ Potential Outliers/Data Issues:
 4. Row 81 looks like an outlier where wser is extremely high. 
 
 ##Setup
-Reading and understanding the data schema:
+Reading the data and loading the right libraries:
 ```{r}
 library(corrplot)
 library(car)
 
 setwd("C:\\Users\\aayuen\\Documents\\GitHub\\w203_lab4_kka")
 data = read.csv("crime.csv")
+```
+There are 90 data points and 25 variables
+```{r}
 nrow(data)
 colnames(data)
+```
+
+There doesn't seem to be any NAs in the dataset
+```{r}
+apply(!is.na(data[,]), MARGIN = 2, mean)
 ```
 
 ##Univariate Variable Analysis
