@@ -7,17 +7,6 @@ output:
   html_document: default
 ---
 
-Reading and understanding the data schema:
-```{r}
-library(corrplot)
-library(car)
-
-setwd("C:\\Users\\aayuen\\Documents\\GitHub\\w203_lab4_kka")
-data = read.csv("crime.csv")
-nrow(data)
-colnames(data)
-```
-
 ##Summary of Findings from EDA
 
 Types of Variables:
@@ -39,6 +28,18 @@ Potential Outliers/Data Issues:
 3. Average Sentence in Days (avgsen) looks like it should be Average Sentence in Years.
 4. Row 81 looks like an outlier where wser is extremely high. 
 
+##Setup
+Reading and understanding the data schema:
+```{r}
+library(corrplot)
+library(car)
+
+setwd("C:\\Users\\aayuen\\Documents\\GitHub\\w203_lab4_kka")
+data = read.csv("crime.csv")
+nrow(data)
+colnames(data)
+```
+
 ##Univariate Variable Analysis
 
 ###1. county - County Identifier
@@ -46,7 +47,7 @@ Potential Outliers/Data Issues:
 County is essentially a unique identifier (no duplicates).
 ```{r}
 length(unique(data$county))
-nrow(data$county)
+length(data$county)
 ```
 
 ###2. year - Only 87
@@ -58,7 +59,7 @@ unique(data$year)
 
 ###3. crmrte - Crimes Committed per Person
 
-```{r}
+```{r fig.height=3}
 hist(data$crmrte, breaks=50,
      main="Histogram of Crimes Committed per Person",
      xlab="Crimes committed per person")
@@ -68,7 +69,7 @@ hist(data$crmrte, breaks=50,
 ###4. prbarr - Probability of Arrest
 
 Row 51 has prbarr > 1.0 which seems suspicious, given prbarr should between 0 and 1.
-```{r}
+```{r fig.height=3}
 summary(data$prbarr)
 data[data$prbarr > 1,]
 hist(data$prbarr, breaks=50,
@@ -79,7 +80,7 @@ hist(data$prbarr, breaks=50,
 ###5. prbconv - Probability of Conviction
 
 There seems to be 10 rows where prbconv is > 1.0, which again is suspicious, given that prbconv should be between 0 and 1.
-```{r}
+```{r fig.height=3}
 summary(data$prbconv)
 data[data$prbconv > 1,]
 hist(data$prbconv, breaks=50,
@@ -89,7 +90,7 @@ hist(data$prbconv, breaks=50,
 
 ###6. prbpris - Probability of Prison Sentence
 
-```{r}
+```{r fig.height=3}
 summary(data$prbpris)
 hist(data$prbconv, breaks=50,
      main="Histogram of Probability of Prison Sentence",
@@ -99,7 +100,7 @@ hist(data$prbconv, breaks=50,
 ###7. avgsen - Average Sentence in Days
 
 Really? Days? This looks more like average sentence in years...
-```{r}
+```{r fig.height=3}
 summary(data$avgsen)
 hist(data$avgsen, breaks=50,
      main="Histogram of Average Sentence in Days",
@@ -110,7 +111,7 @@ hist(data$avgsen, breaks=50,
 ###8. polpc - Police per Capita
 
 Data looks expected.
-```{r}
+```{r fig.height=3}
 summary(data$polpc)
 hist(data$polpc, breaks=50,
      main="Histogram of Police per Capita",
@@ -121,7 +122,7 @@ hist(data$polpc, breaks=50,
 ###9. density - People per Sq. Mile
 
 Data looks expected.
-```{r}
+```{r fig.height=3}
 summary(data$density)
 hist(data$density, breaks=50,
      main="Histogram of People per Sq. Mile",
@@ -131,7 +132,7 @@ hist(data$density, breaks=50,
 ###10. taxpc - Tax Revenue per Capita
 
 Data looks expected.
-```{r}
+```{r fig.height=3}
 summary(data$taxpc)
 hist(data$taxpc, breaks=50,
      main="Histogram of Tax Revenue per Capita",
@@ -141,7 +142,7 @@ hist(data$taxpc, breaks=50,
 ###11. west - Indicator of Western N.C.
 
 Data looks expected.
-```{r}
+```{r fig.height=3}
 summary(factor(data$west))
 barplot(table(data$west),
         main="Non-Western N.C. vs Western N.C.")
@@ -150,7 +151,7 @@ barplot(table(data$west),
 ###12. central - Indicator of Central N.C.
 
 Data looks expected.
-```{r}
+```{r fig.height=3}
 summary(factor(data$central))
 barplot(table(data$central),
         main="Non-Central N.C. vs Central N.C.")
@@ -159,7 +160,7 @@ barplot(table(data$central),
 ###13. urban - Indicator of whether in SMSA
 
 What does "SMSA" mean? Otherwise, data looks expected.
-```{r}
+```{r fig.height=3}
 summary(factor(data$urban))
 barplot(table(data$urban),
         main="Non-Urban vs Urban")
@@ -168,7 +169,7 @@ barplot(table(data$urban),
 ###14. pctmin80 - Percentage of Minority, 1980
 
 Data looks expected. However, data is between 0 - 100 whereas other percentage variables is between 0-1; We may want to transform this variable to keep things consistent from an interpretability perspective.
-```{r}
+```{r fig.height=3}
 summary(data$pctmin80)
 hist(data$pctmin80, breaks=50,
      main="Histogram of Percentage of Minority",
@@ -178,7 +179,7 @@ hist(data$pctmin80, breaks=50,
 ###15. wcon - Weekly Wage, Construction
 
 Data looks expected.
-```{r}
+```{r fig.height=3}
 summary(data$wcon)
 hist(data$wcon, breaks=50,
      main="Histogram of Weekly Wage, Construction",
@@ -188,7 +189,7 @@ hist(data$wcon, breaks=50,
 ###16. wtuc - Weekly Wage, Trans, Util, Communication
 
 Data looks expected.
-```{r}
+```{r fig.height=3}
 summary(data$wtuc)
 hist(data$wtuc, breaks=50,
      main="Histogram of Weekly Wage, Trans, Util, Communication",
@@ -198,7 +199,7 @@ hist(data$wtuc, breaks=50,
 ###17. wtrd - Weekly Wage, Wholesale, Retail Trade
 
 Data looks expected.
-```{r}
+```{r fig.height=3}
 summary(data$wtrd)
 hist(data$wtrd, breaks=50,
      main="Histogram of Weekly Wage, Wholesale, Retail Trade",
@@ -208,7 +209,7 @@ hist(data$wtrd, breaks=50,
 ###18. wfir - Weekly Wage, Finance, Insurance, Real Estate
 
 Data looks expected.
-```{r}
+```{r fig.height=3}
 summary(data$wfir)
 hist(data$wfir, breaks=50,
      main="Histogram of Weekly Wage, Finance, Insurance, Real Estate",
@@ -218,7 +219,7 @@ hist(data$wfir, breaks=50,
 ###19. wser - Weekly Wage, Service Industry
 
 There's a very extreme outlier here, need to take a closer look.
-```{r}
+```{r fig.height=3}
 summary(data$wser)
 hist(data$wser, breaks=50,
      main="Histogram of Weekly Wage, Service Industry",
@@ -229,7 +230,7 @@ data[data$wser > 2000, ]
 ###20. wmfg - Weekly Wage, Manufacturing
 
 Data looks expected.
-```{r}
+```{r fig.height=3}
 summary(data$wmfg)
 hist(data$wmfg, breaks=50,
      main="Histogram of Weekly Wage, Manufacturing",
@@ -239,7 +240,7 @@ hist(data$wmfg, breaks=50,
 ###21. wfed - Weekly Wage, Fed Employees
 
 Data looks expected.
-```{r}
+```{r fig.height=3}
 summary(data$wfed)
 hist(data$wfed, breaks=50,
      main="Histogram of Weekly Wage, Fed Employees",
@@ -250,7 +251,7 @@ hist(data$wfed, breaks=50,
 ###22. wsta - Weekly Wage, State Employees
 
 Data looks expected.
-```{r}
+```{r fig.height=3}
 summary(data$wsta)
 hist(data$wsta, breaks=50,
      main="Histogram of Weekly Wage, State Employees",
@@ -260,7 +261,7 @@ hist(data$wsta, breaks=50,
 ###23. wloc - Weekly Wage, Local Government Employees
 
 Data looks expected.
-```{r}
+```{r fig.height=3}
 summary(data$wsta)
 hist(data$wsta, breaks=50,
      main="Histogram of Weekly Wage, Local Government Employees",
@@ -270,7 +271,7 @@ hist(data$wsta, breaks=50,
 ###24. mix - Offense Mix: Face-to-face/Other
 
 Not really sure what this variable means...
-```{r}
+```{r fig.height=3}
 summary(data$mix)
 hist(data$mix, breaks=50,
      main="Histogram of Offense Mix: Face-to-face/Other",
@@ -280,7 +281,7 @@ hist(data$mix, breaks=50,
 ###25. pctymle - Percent Young Male
 
 Data looks expected.
-```{r}
+```{r fig.height=3}
 summary(data$pctymle)
 hist(data$pctymle, breaks=50,
      main="Histogram of Percent Young Male",
@@ -301,7 +302,7 @@ Looks like the following variables correlate with crmrte highly and negatively:
 1. prbarr - Makes sense since if probabily of arrests go down, then there are more criminals out on the streets.
 2. prbconv - Makes sense since if probability of convictions go down, then there are more (potential) criminal out on the streets.
 
-```{r}
+```{r fig.height=6}
 corrplot(cor(data[ , (names(data) %in% c("crmrte", "prbarr", "prbconv", "prbpris", "polpc", "density", "pctmin80", "pctymle",
                                           "taxpc", "wcon", "wtuc", "wtrd", "wfir", "wser", "wmfg", "wfed", "wsta", "wloc",
                                           "mix"))]), 
