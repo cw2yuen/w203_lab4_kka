@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 data = read.csv("crime.csv")
-View(data)
+#View(data)
 ```
 
 
@@ -111,6 +111,15 @@ se=list(se.model1, se.model2),star.cutoffs=c(0.05, 0.01, 0.001))
 linearHypothesis(model3, c("wcon = 0", "wtuc = 0", "wtrd = 0", "wfir = 0", "wmfg = 0", "wfed = 0", "wsta = 0", "wloc = 0"), vcov = vcovHC)
 
 linearHypothesis(model3, c("wcon = 0", "wtuc = 0", "wtrd = 0", "wfir = 0", "wmfg = 0", "wsta = 0", "wloc = 0"), vcov = vcovHC)
+```
+
+
+```{r}
+summary(model1)
+summary(model2)
+summary(model3)
+summary(model4)
+
 ```
 
 
