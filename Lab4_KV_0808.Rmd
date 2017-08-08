@@ -1,0 +1,85 @@
+---
+title: "Lab4_RMD_Layer2"
+author: "Kim Vignola"
+date: "8/5/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Add libraries
+```{r cars}
+library(car)
+library(corrplot)
+```
+
+```{r pressure, echo=FALSE}
+crime <- read.csv("crime.csv", header = TRUE)
+```
+
+## new variables based on proportions of wages.  Not sure that we need these but including in case you would like to review in greater detail.
+```{r}
+crime$tot_wages <- (crime$wcon + crime$wtuc + crime$wtrd + crime$wfir + crime$wser + crime$wmfg + crime$wfed + crime$wsta + crime$wloc)
+crime$gov_wages <- (crime$wfed + crime$wsta + crime$wloc)
+crime$bus_wages <- (crime$wcon + crime$wtuc + crime$wtrd + crime$wfir + crime$wser + crime$wmfg)
+crime$low_wages <- as.numeric(crime$tot_wages < mean(crime$tot_wages))
+crime$high_wages <- as.numeric(crime$tot_wages > mean(crime$tot_wages))
+crime$wcon_p <- crime$wcon/crime$tot_wages
+crime$wtuc_p <- crime$wtuc/crime$tot_wages
+crime$wtrd_p <- crime$wtrd/crime$tot_wages
+crime$wfir_p <- crime$wfir/crime$tot_wages
+crime$wser_p <- crime$wser/crime$tot_wages
+crime$wmfg_p <- crime$wmfg/crime$tot_wages
+crime$wfed_p <- crime$wfed/crime$tot_wages
+crime$wsta_p <- crime$wsta/crime$tot_wages
+crime$wloc_p <- crime$wloc/crime$tot_wages
+crime$bus_wage_p <- crime$wcon_p + crime$wtuc_p + crime$wtrd_p + crime$wfir_p + crime$wser_p + crime$wmfg_p 
+crime$govt_wage_p <- crime$wfed_p + crime$wfed_p + crime$wfed_p
+crime$sta_loc_p <- crime$wsta_p + crime$wloc_p
+```
+
+## Clean data (preliminary)
+```{r}
+crime2 <- subset(crime, crime$prbarr < 1 & crime$prbconv <1 & crime$taxpc <100 & crime$pctymle < 20)
+```
+
+## Scatterplot matrix #1 using cleaned (preliminary) dataset. (Had to do this in chunks due to the number of variables).  The first one shows strong correlations between crime rate adn police per capita, density and taxpc.  Density appears to have a parabolic relationship between taxes and police per capita. Of the prison metrics, prbarr appears to have the biggest impact on declining crime rates.
+```{r}
+scatterplotMatrix(crime2[ , (names(crime2) %in% c("crmrte", "density", "prbarr", "prbconv", "prbpris", "avgsen", "polpc","taxpc"))])
+```
+
+\pagebreak
+
+## Scatterplot #2: As Kristen noted, percent male has a strong correlation with crime rate. There is some relation (pattern looks concave) between percent minority and crime mix. Counties with higher proportions of business wages are inversely correlated with those with government wages. Wages overall are linked with higher crime.
+```{r}
+scatterplotMatrix(crime2[ , (names(crime2) %in% c("crmrte", "pctmin80", "mix", "pctymle", "bus_wage_p", "govt_wage_p"))])
+```
+
+\pagebreak
+
+## Scatterplot 3: Specific industries.  Retail, manufacturing and federal wages are positively correlated with crime rates while there is a descending relationship between state and local government wages and crime. (These are based on proportions of wages in each county.)
+```{r}
+scatterplotMatrix(crime2[ , (names(crime2) %in% c("crmrte", "wcon_p", "wtuc_p", "wtrd_p", "wfir_p", "wser_p", "wmfg_p", "wfed_p", "wsta_p", "wloc_p"))])
+```
+
+\pagebreak
+
+## Pulling out key metrics we can also see that percentage male has a relationship with policepc (positive) and probability of arrest (negative).
+```{r}
+scatterplotMatrix(crime2[ , (names(crime2) %in% c("crmrte", "density", "prbarr", "polpc","taxpc", "pctymle", "wfed_p", "wloc_p", "pctmin80", "mix"))])
+```
+
+\pagebreak
+
+## Potential Models
+```{r}
+model2 <- lm(log(crmrte) ~ density + taxpc + density*taxpc + pctymle + wfed_p + prbarr, data = crime2)
+```
+
+Model 2
+```{r}
+summary(model2)
+plot(model2)
+```
