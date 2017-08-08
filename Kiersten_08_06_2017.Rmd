@@ -72,18 +72,47 @@ hist(model1$residuals, breaks = 50)
 shapiro.test(model1$residuals)
 #bptest(model1)
 coeftest(model1, vcov = vcovHC)
-#vcovHC(model1)
+vcovHC(model1)
+(se.model1 = sqrt(diag(vcovHC(model1))))
+
+
 
 model2 = lm(log(crmrte) ~ density+prbarr +prbconv+ pctymle +pctmin80, data = data)
 plot(model2)
 hist(model2$residuals, breaks = 50)
 coeftest(model2, vcov = vcovHC)
+vcovHC(model2)
+(se.model2 = sqrt(diag(vcovHC(model2))))
 
 model3 = lm(log(crmrte) ~ density+prbarr +prbconv+ pctymle +pctmin80 + wcon+wtuc+wtrd+wfir+wmfg+wfed+wsta+wloc, data = data)
 plot(model3)
 hist(model3$residuals, breaks = 50)
 coeftest(model3, vcov = vcovHC)
+vcovHC(model3)
+(se.model3 = sqrt(diag(vcovHC(model3))))
+
+
+model4 = lm(log(crmrte) ~ density+prbarr +prbconv+ pctymle +pctmin80 + wfed, data = data)
+plot(model4)
+hist(model4$residuals, breaks = 50)
+coeftest(model4, vcov = vcovHC)
+vcovHC(model4)
+(se.model4 = sqrt(diag(vcovHC(model4))))
 ```
+
+
+```{r}
+stargazer(model1, model2, model3, model4, type="text", omit.stat="F",
+se=list(se.model1, se.model2),star.cutoffs=c(0.05, 0.01, 0.001))
+```
+
+
+```{r}
+linearHypothesis(model3, c("wcon = 0", "wtuc = 0", "wtrd = 0", "wfir = 0", "wmfg = 0", "wfed = 0", "wsta = 0", "wloc = 0"), vcov = vcovHC)
+
+linearHypothesis(model3, c("wcon = 0", "wtuc = 0", "wtrd = 0", "wfir = 0", "wmfg = 0", "wsta = 0", "wloc = 0"), vcov = vcovHC)
+```
+
 
 ```{r}
 plot(data$taxpc~data$density, ylab = "Tax per Capita", xlab = "Density", main="Tax per Capita According to Density (0.32)")
@@ -123,7 +152,7 @@ abline(lm(data$wser~data$density))
 cor(data$wser,data$density)
 ```
 ```{r}
-plot(data$wmfg~data$density, ylab = "Salary wmfg ", xlab = "Density", main="Salary wser According to Density (0.44)")
+plot(data$wmfg~data$density, ylab = "Salary wmfg ", xlab = "Density", main="Salary wmfg According to Density (0.44)")
 abline(lm(data$wmfg~data$density))
 cor(data$wmfg,data$density)
 ```
