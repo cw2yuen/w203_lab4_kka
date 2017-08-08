@@ -1,0 +1,165 @@
+---
+title: "Crime Reduction thoughts"
+author: "Kiersten Henderson"
+date: "8/5/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+data = read.csv("crime.csv")
+View(data)
+```
+
+
+I wanted to look more closely at the bivariate relationships between crime rate and those variables that correlate with crimerate....just to see if the relationships look linear.  
+
+
+```{r}
+plot(data$prbarr,data$crmrte, main="Crime rate v. Prob. Arrest")
+abline(lm(data$crmrte ~ data$prbarr))
+
+plot(data$prbconv,data$crmrte, main="Crime rate v.Prob. Conviction")
+abline(lm(data$crmrte ~ data$prbconv))
+
+plot(data$prbpris,data$crmrte, main="Crime rate v. Prob. Prison")
+abline(lm(data$crmrte ~ data$prbpris))
+
+plot(data$avgsen,data$crmrte, main="Crime rate v. Average Sentence")
+abline(lm(data$crmrte ~ data$avgsen))
+
+plot(data$polpc,data$crmrte, main="Crime rate v. Police per capita")
+abline(lm(data$crmrte ~ data$polpc))
+cor(data$crmrte,data$polpc )
+
+plot(data$density,data$crmrte, main="Crime rate v. Density")
+abline(lm(data$crmrte ~ data$density))
+
+plot(data$taxpc,data$crmrte, main="Crime rate v. tax per capita")
+abline(lm(data$crmrte ~ data$taxpc))
+
+plot(data$pctmin80,data$crmrte, main="Crime rate v. Percent Minority")
+abline(lm(data$crmrte ~ data$pctmin80))
+cor(data$crmrte,data$pctmin80 )
+
+plot(data$pctymle,data$crmrte, main="Crime rate v. Percent Young Male")
+abline(lm(data$crmrte ~ data$pctymle))
+cor(data$crmrte,data$pctymle )
+
+plot(data$mix,data$crmrte, main="Crime rate v. Offense Mix")
+abline(lm(data$crmrte ~ data$mix))
+cor(data$crmrte,data$mix )
+
+```
+
+
+```{r}
+library(car)
+library(corrplot)
+library(lmtest)
+library(sandwich)
+library(stargazer)
+```
+
+```{r}
+model1 = lm(log(crmrte) ~ density+prbarr +prbconv+ pctymle, data = data)
+summary(model1)
+plot(model1)
+hist(model1$residuals, breaks = 50)
+shapiro.test(model1$residuals)
+#bptest(model1)
+coeftest(model1, vcov = vcovHC)
+#vcovHC(model1)
+
+model2 = lm(log(crmrte) ~ density+prbarr +prbconv+ pctymle +pctmin80, data = data)
+plot(model2)
+hist(model2$residuals, breaks = 50)
+coeftest(model2, vcov = vcovHC)
+
+model3 = lm(log(crmrte) ~ density+prbarr +prbconv+ pctymle +pctmin80 + wcon+wtuc+wtrd+wfir+wmfg+wfed+wsta+wloc, data = data)
+plot(model3)
+hist(model3$residuals, breaks = 50)
+coeftest(model3, vcov = vcovHC)
+```
+
+```{r}
+plot(data$taxpc~data$density, ylab = "Tax per Capita", xlab = "Density", main="Tax per Capita According to Density (0.32)")
+abline(lm(data$taxpc~data$density))
+cor(data$taxpc,data$density)
+```
+```{r}
+plot(data$wfed~data$density, ylab = "Salary fed workers", xlab = "Density", main="Salary Federal Workers According to Density (0.59)")
+abline(lm(data$wfed~data$density))
+cor(data$wfed,data$density)
+```
+```{r}
+plot(data$wcon~data$density, ylab = "Salary wcon ", xlab = "Density", main="Salary wcon According to Density (0.45)")
+abline(lm(data$wcon~data$density))
+cor(data$wcon,data$density)
+```
+```{r}
+plot(data$wtuc~data$density, ylab = "Salary wtuc ", xlab = "Density", main="Salary wtuc According to Density (0.33)")
+abline(lm(data$wtuc~data$density))
+cor(data$wtuc,data$density)
+```
+```{r}
+plot(data$wtrd~data$density, ylab = "Salary wtrd ", xlab = "Density", main="Salary wtrd According to Density (0.59)")
+abline(lm(data$wtrd~data$density))
+cor(data$wtrd,data$density)
+```
+
+```{r}
+plot(data$wfir~data$density, ylab = "Salary wfir ", xlab = "Density", main="Salary wfir According to Density (0.55)")
+abline(lm(data$wfir~data$density))
+cor(data$wfir,data$density)
+```
+
+```{r}
+plot(data$wser~data$density, ylab = "Salary wser ", xlab = "Density", main="Salary wser According to Density (0.043)")
+abline(lm(data$wser~data$density))
+cor(data$wser,data$density)
+```
+```{r}
+plot(data$wmfg~data$density, ylab = "Salary wmfg ", xlab = "Density", main="Salary wser According to Density (0.44)")
+abline(lm(data$wmfg~data$density))
+cor(data$wmfg,data$density)
+```
+
+
+```{r}
+plot(data$prbarr,data$density, main="Density v. Prob. Arrest")
+abline(lm(data$density ~ data$prbarr))
+
+plot(data$prbconv,data$density, main="Density v.Prob. Conviction")
+abline(lm(data$density ~ data$prbconv))
+
+plot(data$prbpris,data$density, main="Density v. Prob. Prison")
+abline(lm(data$density ~ data$prbpris))
+
+plot(data$avgsen,data$density, main="Density v. Average Sentence")
+abline(lm(data$density ~ data$avgsen))
+
+plot(data$polpc,data$density, main="Density v. Police per capita")
+abline(lm(data$density ~ data$polpc))
+cor(data$density,data$polpc )
+
+
+plot(data$taxpc,data$density, main= "Density v. tax per capita")
+abline(lm(data$density ~ data$taxpc))
+
+plot(data$pctmin80,data$density, main="Density v. Percent Minority")
+abline(lm(data$density ~ data$pctmin80))
+cor(data$density,data$pctmin80 )
+
+plot(data$pctymle,data$density, main="Density v. Percent Young Male")
+abline(lm(data$density ~ data$pctymle))
+cor(data$density,data$pctymle )
+
+plot(data$mix,data$density, main="Density v. Offense Mix")
+abline(lm(data$density ~ data$mix))
+cor(data$density,data$mix )
+```
+
