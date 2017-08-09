@@ -1,0 +1,317 @@
+---
+title: 'Lab 4:Crime Reduction Thoughts'
+author: "Kiersten Henderson"
+date: "August 9, 2017"
+geometry: margin=1.5cm
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+
+
+```{r}
+library(car)
+library(corrplot)
+library(lmtest)
+library(sandwich)
+library(stargazer)
+```
+
+
+## Transformed Dataset
+```{r}
+#copied Aaron's (checked that this incorporates what Kim did too, I added mean of wages from all categories)
+data = read.csv("crime.csv")
+data$crmrte_log = log(data$crmrte)
+data$crmrte_1K_log = log(data$crmrte *10^3)
+data$polpc_1M_log = log(data$polpc * 10^6)
+data$density_1K_log = log(data$density * 10^3)
+data$taxpc_log = log(data$taxpc)
+data$pctmin80 = data$pctmin80 / 100
+data$wtotal = (data$wcon + data$wtuc + data$wtrd + data$wfir + 
+              data$wser + data$wmfg + data$wfed + data$wsta + data$wloc)
+data$w_mean = (data$wcon + data$wtuc + data$wtrd + data$wfir + 
+              data$wser + data$wmfg + data$wfed + data$wsta + data$wloc)/9
+sort(colnames(data))
+```
+
+Yes, beautiful, needed that X 1K 
+```{r}
+hist(data$crmrte)
+hist(data$crmrte_log)
+hist(data$crmrte_1K_log)
+```
+
+
+
+```{r}
+hist(data$polpc)
+#looks better below, agreed
+hist(data$polpc_1M_log)
+```
+
+Great!
+
+```{r}
+hist(data$density)
+hist(data$density_1K_log)
+```
+
+
+```{r}
+hist(data$taxpc)
+hist(data$taxpc_log)
+```
+
+
+```{r}
+hist(data$wtotal)
+hist(data$w_mean)
+```
+
+
+All the correlations from before the transformations hold and total wages and mean of wages from each category look identical.
+
+```{r}
+corrplot(cor(data[ , (names(data) %in% c("crmrte_1K_log", "prbarr", "prbconv", "prbpris", "polpc_1M_log", "taxpc_log", "pctmin80", "pctymle",
+                                          "density_1K_log", "wcon", "wtuc", "wtrd", "wfir", "wser", "wmfg", "wfed", "wsta", "wloc","wtotal", "w_mean",  "mix"))]), method="circle", type="upper")
+```
+
+
+Scatterplot Matricies are too much - see individual charts below.
+
+```{r}
+#scatterplotMatrix(data[ , (names(data) %in% c("crmrte_1K_log", "polpc_1M_log", "prbarr", "prbconv", "prbpris", "pctmin80", "taxpc_log","pctymle", "density_1K_log", "wtotal", "w_mean", "mix"))])
+```
+
+```{r}
+#scatterplotMatrix(data[ , (names(data) %in% c("crmrte_1K_log","wcon", "wtuc", "wtrd", "wfir", "wser", "wmfg", "wfed", "wsta", "wloc", "wtotal", "w_mean"))])
+```
+
+
+It seems like the relationships between Log crime rate 1K and other variables of interest are linear.
+
+```{r}
+plot(data$prbarr,data$crmrte_1K_log, main="Log Crime rate 1K v. Prob. Arrest")
+abline(lm(data$crmrte_1K_log ~ data$prbarr))
+
+plot(data$prbconv,data$crmrte_1K_log, main="Log Crime rate 1K v.Prob. Conviction")
+abline(lm(data$crmrte_1K_log ~ data$prbconv))
+
+plot(data$prbpris,data$crmrte_1K_log, main="Log Crime rate 1K v. Prob. Prison")
+abline(lm(data$crmrte_1K_log ~ data$prbpris))
+
+plot(data$avgsen,data$crmrte_1K_log, main="Log Crime rate 1K v. Average Sentence")
+abline(lm(data$crmrte_1K_log ~ data$avgsen))
+
+plot(data$polpc_1M_log,data$crmrte_1K_log, main= "Log Crime rate 1K v. Log Police per 1M Capita (R=0.28)" )
+abline(lm(data$crmrte_1K_log ~ data$polpc_1M_log))
+cor(data$crmrte_1K_log,data$polpc_1M_log)
+
+plot(data$density_1K_log,data$crmrte_1K_log, main="Log Crime rate 1K v. Log Density 1K")
+abline(lm(data$crmrte_1K_log ~ data$density_1K_log))
+
+plot(data$taxpc_log,data$crmrte_1K_log, main="Log Crime rate 1K v. Log tax per capita")
+abline(lm(data$crmrte_1K_log ~ data$taxpc_log))
+
+plot(data$pctmin80,data$crmrte_1K_log, main="Log Crime rate 1K v. Percent Minority, (R=0.23)")
+abline(lm(data$crmrte_1K_log ~ data$pctmin80))
+cor(data$crmrte_1K_log,data$pctmin80 )
+
+plot(data$pctymle,data$crmrte_1K_log, main="Log Crime rate 1K v. Percent Young Male, (R=0.28)")
+abline(lm(data$crmrte_1K_log ~ data$pctymle))
+cor(data$crmrte_1K_log,data$pctymle )
+
+plot(data$mix,data$crmrte_1K_log, main="Log Crime rate 1K v. Offense Mix, (R=-0.12)")
+abline(lm(data$crmrte_1K_log ~ data$mix))
+cor(data$crmrte_1K_log,data$mix )
+
+plot(data$wtotal,data$crmrte_1K_log, main="Log Crime rate 1K v. Total Wages")
+abline(lm(data$crmrte_1K_log ~ data$wtotal))
+
+plot(data$wser,data$crmrte_1K_log, main="Log Crime rate 1K v. wser")
+abline(lm(data$crmrte_1K_log ~ data$wser))
+```
+
+Modeling conclusions:
+
+The best way to look at models is to go to the stargazer summaries because the far left column tells you what variables are included..there's one on line 200 in RMD..and one on line 256.
+
+-we can achieve adjusted R squared of 0.84
+-surprisingly, wages dont seem to matter for model anymore (i did do linearHypothesis test)
+-density can surprisingly be excluded (you can get 0.75 ish with exclusion of density), but its probably better to include it
+-if you exclude density, then the wages categories become significant and bump model to 0.78 R2 (but the individual contributions of wages are not practically significant at all)
+
+Further messing around to be certain but preliminary findings:
+
+-percent young male doesnt matter 
+-seems like models benefit quite a bit from including police per capita and both prob arrest and conviction
+
+Right now i'm leaning towards model6 
+
+
+```{r}
+
+model1 = lm(data$crmrte_1K_log ~ density_1K_log+prbarr +prbconv+ pctymle, data = data)
+summary(model1)
+plot(model1)
+hist(model1$residuals, breaks = 50)
+coeftest(model1, vcov = vcovHC)
+#vcovHC(model1)
+(se.model1 = sqrt(diag(vcovHC(model1))))
+
+```
+Below, added in minority
+
+```{r}
+model2 = lm(data$crmrte_1K_log ~ density_1K_log+prbarr +prbconv+ pctymle+pctmin80, data = data)
+#summary(model2)
+plot(model2)
+hist(model2$residuals, breaks = 50)
+coeftest(model2, vcov = vcovHC)
+#vcovHC(model2)
+se.model2 = sqrt(diag(vcovHC(model2)))
+```
+
+This model below is model2 with the transformed polic per capita
+
+```{r}
+model3 = lm(data$crmrte_1K_log ~ density_1K_log+prbarr +prbconv+ pctymle+pctmin80+polpc_1M_log, data = data)
+#summary(model3)
+plot(model3)
+hist(model3$residuals, breaks = 50)
+coeftest(model3, vcov = vcovHC)
+#vcovHC(model3)
+se.model3 = sqrt(diag(vcovHC(model3)))
+```
+
+This model is model 3 with all the kinds of employment included:
+
+```{r}
+model4 = lm(data$crmrte_1K_log ~ density_1K_log+prbarr +prbconv+ pctymle+pctmin80+polpc_1M_log+wcon+wtuc+wtrd+wfir+wmfg+wfed+wsta+wloc+wser, data = data)
+#summary(model4)
+plot(model4)
+hist(model4$residuals, breaks = 50)
+coeftest(model4, vcov = vcovHC)
+#vcovHC(model4)
+se.model4 = sqrt(diag(vcovHC(model4)))
+```
+
+
+```{r}
+linearHypothesis(model4, c("wcon = 0", "wtuc = 0", "wtrd = 0", "wfir = 0", "wmfg = 0", "wfed = 0", "wsta = 0", "wloc = 0"), vcov = vcovHC)
+```
+
+
+
+```{r}
+stargazer(model1, model2, model3, model4,type="text",
+se=list(se.model1, se.model2, se.model3, se.model4),star.cutoffs=c(0.05, 0.01, 0.001))
+```
+
+
+This model below (5) is model3 with just federal worker wage included.
+
+```{r}
+model5 = lm(data$crmrte_1K_log ~ density_1K_log+prbarr +prbconv+ pctymle+pctmin80+polpc_1M_log+wfed, data = data)
+#summary(model5)
+plot(model5)
+hist(model5$residuals, breaks = 50)
+coeftest(model5, vcov = vcovHC)
+#vcovHC(model5)
+se.model5 = sqrt(diag(vcovHC(model5)))
+```
+
+This model below (6) is model3 with percent young male excluded.
+
+```{r}
+model6 = lm(data$crmrte_1K_log ~ density_1K_log+prbarr +prbconv+pctmin80+polpc_1M_log, data = data)
+#summary(model6)
+plot(model6)
+hist(model6$residuals, breaks = 50)
+coeftest(model6, vcov = vcovHC)
+#vcovHC(model6)
+se.model6 = sqrt(diag(vcovHC(model6)))
+```
+
+```{r}
+model7 = lm(data$crmrte_1K_log ~ density_1K_log+prbarr +pctmin80+polpc_1M_log, data = data)
+#summary(model7)
+plot(model7)
+hist(model7$residuals, breaks = 50)
+coeftest(model7, vcov = vcovHC)
+#vcovHC(model7)
+se.model7 = sqrt(diag(vcovHC(model7)))
+```
+
+```{r}
+model8 = lm(data$crmrte_1K_log ~ density_1K_log+prbarr +pctmin80, data = data)
+#summary(model8)
+plot(model8)
+hist(model8$residuals, breaks = 50)
+coeftest(model8, vcov = vcovHC)
+#vcovHC(model8)
+se.model8 = sqrt(diag(vcovHC(model8)))
+```
+
+
+```{r}
+stargazer(model1, model2, model3, model6, model7, model8,type="text",
+se=list(se.model1, se.model2, se.model3, se.model6, se.model7, se.model8),star.cutoffs=c(0.05, 0.01, 0.001))
+```
+
+
+```{r}
+model9 = lm(data$crmrte_1K_log ~ prbarr +prbconv+ pctymle+pctmin80+polpc_1M_log, data = data)
+#summary(model9)
+plot(model9)
+hist(model9$residuals, breaks = 50)
+coeftest(model9, vcov = vcovHC)
+#vcovHC(model9)
+se.model9 = sqrt(diag(vcovHC(model9)))
+```
+
+```{r}
+stargazer(model3, model6, model7, model8, model9, type="text",
+se=list(se.model3, se.model6, se.model7, se.model8, se.model9),star.cutoffs=c(0.05, 0.01, 0.001))
+```
+
+```{r}
+model10 = lm(data$crmrte_1K_log ~ prbarr +prbconv+pctmin80+polpc_1M_log, data = data)
+#summary(model10)
+plot(model10)
+hist(model10$residuals, breaks = 50)
+coeftest(model10, vcov = vcovHC)
+#vcovHC(model10)
+se.model10 = sqrt(diag(vcovHC(model10)))
+```
+
+
+```{r}
+stargazer(model3, model6, model7, model8, model9, model10,type="text",
+se=list(se.model3, se.model6, se.model7, se.model8, se.model9, se.model10),star.cutoffs=c(0.05, 0.01, 0.001))
+```
+
+```{r}
+model11 = lm(data$crmrte_1K_log ~ prbarr +prbconv+pctmin80+polpc_1M_log+wcon+wtuc+wtrd+wfir+wmfg+wfed+wsta+wloc+wser, data = data)
+#summary(model11)
+plot(model11)
+hist(model11$residuals, breaks = 50)
+coeftest(model11, vcov = vcovHC)
+#vcovHC(model11)
+se.model11 = sqrt(diag(vcovHC(model11)))
+```
+
+```{r}
+stargazer(model10, model11,type="text",
+se=list(se.model10, se.model11),star.cutoffs=c(0.05, 0.01, 0.001))
+```
+
+
+```{r}
+linearHypothesis(model11, c("wcon = 0", "wtuc = 0", "wtrd = 0", "wfir = 0", "wmfg = 0", "wfed = 0", "wsta = 0", "wloc = 0"), vcov = vcovHC)
+
+```
+
