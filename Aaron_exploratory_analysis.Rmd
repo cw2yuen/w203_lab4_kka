@@ -311,7 +311,8 @@ Looks like the following variables correlate with crmrte highly and negatively:
 2. prbconv - Makes sense since if probability of convictions go down, then there are more (potential) criminal out on the streets.
 
 ```{r fig.height=6}
-corrplot(cor(data[ , (names(data) %in% c("crmrte", "prbarr", "prbconv", "prbpris", "polpc", "density", "pctmin80", "pctymle",
+data$log_crmrte = log(data$crmrte)
+corrplot(cor(data[ , (names(data) %in% c("log_crmrte", "prbarr", "prbconv", "prbpris", "polpc", "density", "pctmin80", "pctymle",
                                           "taxpc", "wcon", "wtuc", "wtrd", "wfir", "wser", "wmfg", "wfed", "wsta", "wloc",
                                           "mix"))]), 
                                            method="circle", type="upper")
@@ -320,7 +321,7 @@ corrplot(cor(data[ , (names(data) %in% c("crmrte", "prbarr", "prbconv", "prbpris
 Let's focus more on the variables that correlate highly with crmrte.
 
 ```{r}
-scatterplotMatrix(data[ , (names(data) %in% c("crmrte", "prbarr", "prbconv", "density",
+scatterplotMatrix(data[ , (names(data) %in% c("log_crmrte", "prbarr", "prbconv", "density",
                                           "taxpc"))])
 ```
 

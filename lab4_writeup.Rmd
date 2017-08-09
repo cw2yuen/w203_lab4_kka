@@ -15,6 +15,22 @@ TBD
 #Section 2: Exploratory Analysis
 TBD
 
+## Transformed Dataset
+```{r}
+setwd("C:\\Users\\aayuen\\Documents\\GitHub\\w203_lab4_kka")
+data = read.csv("crime.csv")
+data$crmrte_log = log(data$crmrte)
+data$crmrte_1K_log = log(data$crmrte *10^3)
+data$polpc_1M_log = log(data$polpc * 10^6)
+data$density_1K_log = log(data$density * 10^3)
+data$taxpc_log = log(data$taxpc)
+data$pctmin80 = data$pctmin80 / 100
+data$wtotal = (data$wcon + data$wtuc + data$wtrd + data$wfir + 
+              data$wser + data$wmfg + data$wfed + data$wsta + data$wloc)
+
+sort(colnames(data))
+```
+
 
 #Section 3: Model Building
 TBD
