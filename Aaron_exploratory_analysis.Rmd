@@ -73,7 +73,6 @@ hist(data$crmrte, breaks=50,
      xlab="Crimes committed per person")
 ```
 
-
 ###4. prbarr - Probability of Arrest
 
 Row 51 has prbarr > 1.0 which seems suspicious, given prbarr should between 0 and 1.
