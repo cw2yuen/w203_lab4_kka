@@ -25,6 +25,7 @@ library(corrplot)
 library(car)
 library(lmtest)
 library(sandwich)
+library(stargazer)
 
 setwd("C:\\Users\\aayuen\\Documents\\GitHub\\w203_lab4_kka")
 data = read.csv("crime.csv")
@@ -55,7 +56,7 @@ corrplot(cor(data[ , names(data) %in%
 
 ## Model #1 - With Explanatory Variables of Key Interest
 
-Based on the exploratory analysis, finding key independent variables with considerable correlation with log of crime rate, we will first look at log of density, probability of arrest, probability of conviction, log of tax revenue per capita and percent young male.
+Based on the exploratory analysis, finding key independent variables with considerable correlation with log of crime rate, we will first look at log of density, probability of arrest, probability of conviction, log of tax revenue per capita, percent young male, and percent minority.
 
 *MORE TO EXPLAIN HERE*
 ```{r}
@@ -164,15 +165,39 @@ coeftest(m1, vcov = vcovHC)
 
 ## Model #2 - With Explanatory Variables of Key Interest and Potential Covariates to Increase Accuracy
 
-*MORE TO ADD LATER*
+```{r}
+m2 = lm(crmrte_1K_log ~ density_log + prbarr 
+        + prbconv + taxpc_log + pctymle + pctmin80
+        + wcon + wtuc + wtrd + wfir + wser + wmfg + wfed + wsta + wloc
+        , data=data)
+coeftest(m2, vcov = vcovHC)
+```
+
+```{r}
+linearHypothesis(m2, c("wcon = 0", "wtuc = 0", "wtrd = 0", "wfir = 0", "wmfg = 0", "wfed = 0", "wsta = 0", "wloc = 0"), vcov = vcovHC)
+```
 
 ## Model #3 - With Previous Covariates and Most Other Covariates
 
-*MORE TO ADD LATER*
+```{r}
+m3 = lm(crmrte_1K_log ~ density_log + prbarr 
+        + prbconv + taxpc_log + pctymle
+        + wcon + wtuc + wtrd + wfir + wser + wmfg + wfed + wsta + wloc
+        + prbpris + avgsen + polpc_log
+        , data=data)
+coeftest(m3, vcov = vcovHC)
+```
 
 
 #Section 4: Model Summary
-*MORE TO ADD LATER*
+
+```{r}
+se.model1 = sqrt(diag(vcovHC(m1)))
+se.model2 = sqrt(diag(vcovHC(m2)))
+se.model3 = sqrt(diag(vcovHC(m3)))
+stargazer(m1, m2, m3 ,type="text",
+se=list(se.model1, se.model2, se.model3),star.cutoffs=c(0.05, 0.01, 0.001))
+```
 
 
 #Section 5: Causality
