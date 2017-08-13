@@ -34,6 +34,7 @@ data$wtotal = (data$wcon + data$wtuc + data$wtrd + data$wfir +
               data$wser + data$wmfg + data$wfed + data$wsta + data$wloc)
 data$w_mean = (data$wcon + data$wtuc + data$wtrd + data$wfir + 
               data$wser + data$wmfg + data$wfed + data$wsta + data$wloc)/9
+
 sort(colnames(data))
 ```
 
