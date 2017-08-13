@@ -36,7 +36,7 @@ data$taxpc_log = log(data$taxpc)
 data$pctmin80 = data$pctmin80 / 100
 data$wtotal = (data$wcon + data$wtuc + data$wtrd + data$wfir + 
               data$wser + data$wmfg + data$wfed + data$wsta + data$wloc)
-data = data[data$X != 81,]
+data = data[data$X != 84,]
 
 sort(colnames(data))
 ```
@@ -181,7 +181,7 @@ linearHypothesis(m2, c("wcon = 0", "wtuc = 0", "wtrd = 0", "wfir = 0", "wmfg = 0
 
 ```{r}
 m3 = lm(crmrte_1K_log ~ density_log + prbarr 
-        + prbconv + taxpc_log + pctymle
+        + prbconv + taxpc_log + pctymle + pctmin80
         + wcon + wtuc + wtrd + wfir + wser + wmfg + wfed + wsta + wloc
         + prbpris + avgsen + polpc_log
         , data=data)

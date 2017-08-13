@@ -1,0 +1,115 @@
+---
+title: "Lab4_KV_0811"
+author: "Kim Vignola"
+date: "8/11/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Setup
+Reading the data and loading the right libraries:
+```{r}
+library(corrplot)
+library(car)
+library(stargazer)
+library(lmtest)
+library(sandwich)
+data = read.csv("crime_v2.csv")
+names(data)
+```
+
+```{r}
+data$log_crime = log(data$crime)
+data$tot_wages = (data$wagecon + data$wagetuc + data$wagetrd + data$wagefir + data$wageser + data$wagemfg + data$wagefed + data$wagesta + data$wageloc)
+data$gov_wages = (data$wagefed + data$wagesta + data$wageloc)
+data$bus_wages = (data$wagecon + data$wagetuc + data$wagetrd + data$wagefir + data$wageser + data$wagemfg)
+
+data$log_tot_wages = log(data$tot_wages)
+data$log_wagedensity = log(data$tot_wages/data$density)
+data$log_police = log(data$police)
+data$log_density = log(data$density)
+data$wage_density = data$tot_wages/data$density
+data$bus_wage_density = data$bus_wages/data$density
+data$gov_wage_density = data$gov_wages/data$density
+```
+
+```{r}
+data = data[data$X != 84,]
+```
+
+
+```{r}
+hist(data$log_density, breaks = 50)
+hist(data$log_wagedensity, breaks = 50)
+hist(data$tot_wages, breaks = 50)
+hist(data$density, breaks = 50)
+head(data$log_wagedensity)
+```
+
+## "Wage Density" inversely correlated with crime.  Density, tax, urbanity, % minority all increase crime. Young males to some degree as well.  Crime is depressed by prob conv, prob sent, central region and mix. Log police is correlated with avg sentencing and probability of conviction.
+
+```{r}
+## Can't include minority without probsen or probconv - need both or violate zero conditional mean and heteroskedastity
+corrplot(cor(data[ , (names(data) %in% c("crime", "log_crime", "log_police", "log_density", "log_wagedensity", "probconv", "probsen", "avgsen", "density", "tax", "west", "central", "urban", "pctmin", "mix", "ymale"))]), method="number")
+corrplot(cor(data[ , (names(data) %in% c("crime", "log_crime", "log_police", "log_wagedensity", "wage_density", "bus_wage_density", "gov_wage_density", "density", "log_density"))]), method="number")
+```
+
+
+```{r}
+hist(data$log_wagedensity, breaks = 50)
+plot(data$log_wagedensity, data$log_crime)
+scatterplotMatrix(data[ , (names(data) %in% c("log_crime", "log_wagedensity", "log_density", "pctmin", "mix", "pctmin", "probconv", "probsen", "log_police"))])
+```
+
+##  In a simple regression, wage density is stronger than density, density squared or density plus total wages police or log police. But similar to log_density.
+## Central initially looks signficant but not so when include minority and probconv and prbsen
+## Taxes add a bit but impact is removed when adding police
+
+```{r}
+modelA = lm(log_crime ~ log_wagedensity, data = data)
+modelC = lm(log_crime ~ log_density, data = data)
+modelB = lm(log_crime ~ log_police, data = data)
+modelD = lm(log_crime ~ density, data = data)
+
+summary(modelA)
+summary(modelB)
+summary(modelC)
+summary(modelD)
+
+model1 = lm(log_crime ~ log_wagedensity + pctmin + probconv + probsen, data = data)
+model2 = lm(log_crime ~ log_wagedensity + pctmin + probconv + probsen + log_police, data = data)
+model3 = lm(log_crime ~ log_density + pctmin + probsen + probconv + log_police, data = data)
+model4 = lm(log_crime ~ log_wagedensity + log_density + pctmin + probsen + probconv + log_police, data = data)
+model5 = lm(log_crime ~ log_wagedensity + pctmin + probsen + probconv + mix + probconv*mix + log_police, data = data)
+
+se.model1 = sqrt(diag(vcovHC(model1)))
+se.model2 = sqrt(diag(vcovHC(model2)))
+se.model3 = sqrt(diag(vcovHC(model3)))
+se.model4 = sqrt(diag(vcovHC(model4)))
+se.model5 = sqrt(diag(vcovHC(model5)))
+
+stargazer(model1, model2, model3, model4, model5, type="text",
+se=list(se.model1, se.model2, se.model3, se.model4, se.model5),star.cutoffs=c(0.05, 0.01, 0.001), keep.stat = c("f", "n", "aic", "adj.rsq"))
+```
+
+
+```{r}
+AIC(model1)
+AIC(model2)
+AIC(model3)
+AIC(model4)
+AIC(model5)
+```
+
+```{r}
+vif(model2)
+vif(model3)
+vif(model5)
+```
+
+```{r}
+plot(model3)
+```
