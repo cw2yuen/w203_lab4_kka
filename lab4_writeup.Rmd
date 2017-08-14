@@ -11,7 +11,7 @@ output:
 #Section 1: Introduction
 The authors, Kim, Kiersten and Aaron, were hired to provide research for a political campaign in North Carolina to understand the determinants of crime (both correlational and causal) using exploratory data analysis and OLS regression. The end goal is to leverage the data to provide policy suggestions that are applicable to local government to reduce crime.
 
-The provided dataset consists of statistics for a selection of counties for a given time period. Data for 90 counties and 25 variables for each county were provided. 
+The provided cross-sectional dataset consists of statistics for a selection of counties for a given year. Data for 90 counties and 25 variables for each county were provided. 
 
 For this analysis, the following assumptions were made:
 
@@ -179,14 +179,14 @@ Looking at the correlation plot of the non-indicator variables, it looks like th
 2. tax - This makes sense since crime rate could increase in areas where there are more tax revenues collected.
 3. wage variables - This somewhat makes sense since as wages go up, there may be higher likelihood for crime. 
 
-It looks like the following variables correlate with log of crime (last column in the plot) highly and negatively:
+It looks like the following variables correlate with log of crime (second-last column in the plot) highly and negatively:
 
 1. probconv - Makes sense since if probability of convictions go down, then there are more (potential) criminal out on the streets.
 
 ```{r fig.height=6.5}
 corrplot(cor(data[ , (names(data) %in% 
                         c("log_crime", "probarr", "probconv", "probpris", "tax",
-                          "police", "density", "pctmin", "ymale","taxpc", 
+                          "log_police", "density", "pctmin", "ymale","taxpc", 
                           "wagecon", "wagetuc", "wagetrd", "wagefir", "wageser", "wagemfg", 
                           "wagefed", "wagesta", "wageloc", "mix"))]), 
                                            method="circle", type="upper")
