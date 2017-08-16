@@ -1,6 +1,6 @@
 ---
 title: 'Lab 4: Reducing Crime'
-author: "Kim Vignola, Kiersten Hendersen, Aaron Yuen"
+author: "Kim Vignola, Kiersten Henderson, Aaron Yuen"
 date: "August 17, 2017"
 geometry: margin=1.5cm
 output:
@@ -298,19 +298,18 @@ In our exploratory analysis, we identified key independent variables that were p
 
 It is "common knowledge" that areas with higher denisty have more crime, therefore we included log_density in our first model. In addition, we hypothesized that a high probability of arrest, sentencing and coviction would be deterrents of crime. While researching determinants of crime, we found that historically, one of the strongest determinants of crime has been the percent of young males in population, perhaps because they are the most likely perpetrators of crime. We therefore included this variable in our first model as well. In addition, we thought that higher taxes might increase the effectiveness of police and criminal justice capacities.
 
+
 $$log(Crime Rate) = \beta_0 + {\beta_1}log(density)+ {\beta_2}conviction+ {\beta_3}sentencing+{\beta_4}arrests +{\beta_5}tax+{\beta_6}young male + u$$
 
 
-$$\hat{log(Crime Rate)} = \hat{\beta_0} + \hat{\beta_1}log(density)+ \hat{\beta_2}conviction+ \hat{\beta_3}sentencing+\hat{\beta_4}arrests +\hat{\beta_5}tax +\hat{\beta_6}youngmale$$
-
-
+We estimated the above equation by least ordinary squares regression to produce the linear model summarized in Table 1.
 
 ```{r}
 final_model1 = lm(log_crime ~ log_density + probsen + probconv + probarr + ymale + tax, data = data)
 se.final_model1 = sqrt(diag(vcovHC(final_model1)))
 ```
 
-In order to determine if our OLS coefficients will be unbiased estimates of the population parameters, we examined the six classic linear model assumptions for model 1.
+In order to determine if our OLS coefficients will be unbiased estimates of the population parameters and in order to be able to perform statistical inference, we examined the six classic linear model assumptions for model 1.
 
 ### CLM.1 - Linear in Parameters
 
@@ -380,16 +379,16 @@ plot(final_model1, which=5)
 
 ###Conclusions from Examining CLM Assumptions and Interpretation of Model 1 Metrics
 
-```{r}
-coeftest(final_model1, vcov = vcovHC)
-```
-
-
-As seen in the regression table (below), the F statistic for the omnibus test of model 1 is 28.2 with a statistically significant p value of < 2.2e-16. We therefore reject the null hypothesis that the omnibus test indicates that model 2 is not different from zero.
+As seen in the regression table (Table 1), the F statistic for the omnibus test of model 1 is 28.2 with a statistically significant p value of < 2.2e-16. We therefore reject the null hypothesis that none of the independent variables help to describe log(crime rate).
 
 The p values for the t tests for the coefficients on log_density, probconv, probsen, were all < 0.001 and ymale and tax were less than 0.05. For each coefficient, we therefore reject the null hypothesis that the coefficient is equal to zero. Because we will give a detailed summary of the coefficients for our favored model 2 (below), we won't discuss the practical significance of all the coefficients in model 1.
 
-The adjusted R2 for model 1 is quite high for a social science study - 0.65. However, the Akaike Information Criterion (AIC) is 58.8 - fairly large compared to other models.
+The adjusted R2 for model 1 is quite high for a social science study (0.65). However, the Akaike Information Criterion (AIC) is 58.8 - fairly large compared to other models.
+
+
+```{r}
+AIC(final_model1)
+```
 
 
 ###Model 2: More Refined and More Robust than Model 1
@@ -400,7 +399,8 @@ To address these issues, we created more than twenty other models (not shown). T
 
 $$log(Crime Rate) = \beta_0 + {\beta_1}log(density)+ {\beta_2}conviction+ {\beta_3}sentencing+{\beta_4}minority +{\beta_5}log(police) + u$$
 
-$$\hat{log(Crime Rate)} = \hat{\beta_0} + \hat{\beta_1}log(density)+ \hat{\beta_2}conviction+ \hat{\beta_3}sentencing+\hat{\beta_4}minority +\hat{\beta_5}log(police)$$
+
+We estimated the above equation by least ordinary squares regression to produce the linear model summarized in Table 1.
 
 ```{r}
 final_model2 = lm(log_crime ~ log_density + probsen + probconv  + pctmin + log_police, data = data)
@@ -411,42 +411,49 @@ se.final_model2 = sqrt(diag(vcovHC(final_model2)))
 
 Similar to our first model, we tested the CLM assumptions for model 2 and found that we only had to address CLM.4 (homoskedasticity) by using heteroskedasticity robust standard errors. 
 
-Because our model only violates CLM.4 (homoskedasticity), we can conclude that our model coefficients will be unbiased estimators of the population parameters. In addition, we have little reason to suspect endogeneity and we feel comfortable interpreting particular coefficients in the model as causal.
 
 ```{r}
-summary(final_model2)
-coeftest(final_model2, vcov = vcovHC)
-
+plot(final_model2, which = 3)
 ```
 
+Because our model only violates CLM.4 (homoskedasticity), we can conclude that our model coefficients will be unbiased estimators of the population parameters. In addition, we have little reason to suspect endogeneity and we feel comfortable interpreting particular coefficients in the model as causal.
 
-As seen in the regression table, the F statistic for the omnibus test of model 2 is 88.4 with a statistically significant p value of < 2.2e-16. We therefore reject the null hypothesis that the omnibus test indicates that model 2 is not different from zero.
+As seen in the regression table (Table 1), the F statistic for the omnibus test of model 2 is 88.4 with a statistically significant p value of < 2.2e-16. We therefore reject the null hypothesis that none of the independent variables help to describe log(crime rate).
 
 The p values for the t tests for the coefficients on log_density, probsen, probconv, and pctmin are all less than 0.001. The p value for the t test for the coefficient of log_police is less than 0.01. Therefore, for every coefficient, we reject the null hypothesis that the coefficient is equal to zero.
 
-The coefficient for log_density is 0.29. This suggests that for a one percentage point increase in density, there is a 0.29 percent increase in crime rate.
+The coefficient for log_density is 0.29. This suggests that for a one percentage point increase in density, there is a 0.29 percent point increase in crime rate, holding all other factors fixed. Thus, changes in density do not have a practically significant effect on crime rate.
 
-The coefficient for probsen is -0.56. This suggests that for a one unit increase in the probability of sentencing, there is a 56%  decrease in crime rate.
+The coefficient for probsen is -0.006. This suggests that for a one percent increase in the probability of sentencing, there is a 0.6 percentage point decrease in crime rate, holding all other factors fixed. Thus changes in probability of sentencing do have practical significance on crime rate, but not a very large effect.
 
-The coefficient for probconv is -1.70 This suggests that for a one unit increase in the probability of conviction, there is a 170%  decrease in crime rate.
+The coefficient for probconv is -0.017. This suggests that for a one percent increase in the probability of conviction, there is a 1.7 percentage point decrease in crime rate, holding all other factors fixed. Thus changes in probability of conviction do have practical significance on crime rate, but not a very large effect.
 
-The coefficient for pctmin is 1.33. This suggests that for a one unit increase in percent minority, there is a ??133%?? increase in crime rate.
+The coefficient for pctmin is 0.013. This suggests that for a one percent increase in percent minority, there is a 1.3 percentage point increase in crime rate, holding all other factors fixed. 
+Thus a change in percent of people who are minorities does have a practical significance on crime rate, but not a very large effect.
 
-The coefficient for log_police is 0.45. This suggests that for a one percentage point increase in police per capita, there is a 0.45 percent increase in crime rate.
-
-*Practical significance:*
+The coefficient for log_police is 0.45. This suggests that for a one percentage point increase in police per capita, there is a 0.45 percentage point increase in crime rate, holding all other factors fixed. Thus changes in the number of police per capita do have practical significance on crime rate, but not a particularily large effect.
 
 The adjusted R2 for this model (0.83) is better than for model 1 (0.65). In addition the AIC for model 2 is -7.7, indicating that the model predicts a very large percent of the variability in crime rate while being highly parsimonious compared to model 1 whose AIC is 58.8.
+
+```{r}
+AIC(final_model2)
+```
 
 
 ###Model 3: The "Kitchen Sink" Model 
 
 To generate model 3, we added most of the other covariates from the dataset:
 
-$$log(Crime Rate) = \beta_0 + {\beta_1}log(density)+ {\beta_2}conviction+ {\beta_3}sentencing+{\beta_4}arrests + {\beta_5}minority 
-+{\beta_6}log(police) +{\beta_7}yougmale +{\beta_8}urban + {\beta_9}tax +{\beta_10}wage_con +{\beta_11}wage_tuc+{\beta_12}wage_trd+{\beta_13}wage_fir+{\beta_14}wage_mfg+{\beta_15}wage_fed+{\beta_16}wage_sta+{\beta_17}wage_loc+{\beta_18}wage_ser + u$$
+$$log(Crime Rate) = \beta_0 + {\beta_1}log(density)+ {\beta_2}conviction+{\beta_3}sentencing+{\beta_4}arrests + {\beta_5}minority$$
 
-$$\hat{log(Crime Rate)} = \hat{\beta_0} + \hat{\beta_1}log(density)+ \hat{\beta_2}conviction+  \hat{\beta_3}sentencing+ \hat{\beta_4}arrests +  \hat{\beta_5}minority + \hat{\beta_6}log(police) + \hat{\beta_7}yougmale + \hat{\beta_8}urban +  \hat{\beta_9}tax + \hat{\beta_10}wage_con + \hat{\beta_11}wage_tuc+ \hat{\beta_12}wage_trd+ \hat{\beta_13}wage_fir+ \hat{\beta_14}wage_mfg+ \hat{\beta_15}wage_fed+ \hat{\beta_16}wage_sta+ \hat{\beta_17}wage_loc+ \hat{\beta_18}wage_ser$$
+$$+{\beta_6}log(police) +{\beta_7}yougmale +{\beta_8}urban
++ {\beta_9}tax +{\beta_10}wage con+{\beta_11}wage tuc+{\beta_12}wage trd$$
+
+$$+{\beta_13}wage fir+{\beta_14}wage mfg+{\beta_15}wage fed+{\beta_16}wage sta
++{\beta_17}wage loc+{\beta_18}wage ser + u$$
+
+
+We estimated the above equation by least ordinary squares regression to produce the linear model summarized in Table 1.
 
 ```{r}
 final_model3 = lm(log_crime ~ log_density + probsen + probconv + +probarr + ymale + tax + pctmin + 
@@ -458,20 +465,30 @@ se.final_model3 = sqrt(diag(vcovHC(final_model3)))
 ###Conclusions from Examining CLM Assumptions and Interpretation of Model 3
 
 
-We found that Model 3, like our other models, only violated CLM.4 - we identified heteroskedasticity. To address this violation of CLM assumptions, we made use of heteroskedasticity-robust standard errors. Analysis of the variance inflation factor for the variables in model 3 did not indicate any serious multicollinearity. However, we note that the VIF for log(density) was greater than 4 in this model. We thus speculate that there is multicolinearity between the variables log(density), tax, and potentially log(police) in this model.
+We found that Model 3, like our other models, only violated CLM.4 - we identified heteroskedasticity. 
+
+```{r}
+plot(final_model3, which = 3)
+```
+
+
+To address this violation of CLM assumptions, we made use of heteroskedasticity-robust standard errors. Analysis of the variance inflation factor for the variables in model 3 did not indicate any serious multicollinearity. However, we note that the VIF for log(density) was greater than 4 in this model. We thus speculate that there is multicolinearity between the variables log(density), tax, and potentially log(police) in this model.
+
+```{r}
+AIC(final_model3)
+```
 
 As seen in the regression table, the adjusted R2 for model 3 is 0.86. In addition, the AIC is -9.6. These metrics are indicators of a parsimonious model that can account for a huge amount of the variation in log(crime rate). However, we feel that this model is not as parsimonious as model 2 and includes variables that could unnecessarily increase variance of the coefficients resulting in potentially biased estimates. Thus, the primary purpose of this model is to support the idea that model 2 is a robust model. The coefficients of the variables from model 2 (log_density, probsen, probconv, pctmin & log_police) remain fairly constant compared to model 3 and these coefficients are still statistically significant in model 3 (see regression table below). 
 
 Another reason that we do not favor model 3 is that the coefficient for percent young male is statistically significant in model 3. Of more than 20 models we tested, this coefficient is only statistically significant in model 1 and model 3 (as discussed above while justifying the variables to include in model 2). This supports both the idea that the contribution of percent young male to log(crime rate) is not robust and also the idea that model 3 is not a robust model. In addition, model 3 contains many variables whose coefficients are not statistically significant from zero (see regression table). Thus we favor model 2, because it is the most robust model we have identified and it also accounts for a large amount of variation in log(crime rate).
 
-
+\pagebreak
 
 ```{r}
 stargazer(final_model1, final_model2, final_model3,
         se=list(se.final_model1, se.final_model2, se.final_model3),
-        star.cutoffs=c(0.05, 0.01, 0.001), title = "Regression Table for 3 Models", 
-        column.labels = c("Model1 - OK", "Model2 - Great", "Model3 - Kitchen Sink"),
-        type="text")
+        star.cutoffs=c(0.05, 0.01, 0.001), title = "Table 1: Linear Models to Predict log(Crime Rate)", 
+        column.labels = c("Model 1 - OK", "Model 2 - Great", "Model 3 - Kitchen Sink"), type="text")
 ```
 
 
@@ -495,4 +512,8 @@ _6. Proximity to other high crime regions_ could be a notable factor to examine 
 
 ####Conclusions
 
+This data indicates that the main way we can deter crime is to employ stricter criminal justice practices, increasing the probability of convicting and sentencing those who have been arrested. In terms of practical significance, however, the coefficients for probability of conviction and probability of sentencing are so small that it would take an immense amount of effort — and severity — on the part of the criminal justice system to make a tangible difference in the crime rate.
 
+Incorporating key omitted variables into the data set — and analyzing shifts in these variables over time — would help provide a holistic view of the human situations that lead to crime, and what can be done to deter it.  For example, if additional data indicates that poverty, unemployment or a lack of an education are associated with overall crime and recidivism, we could focus efforts on better educating the nation’s poor to give them positive alternatives to crime. Another recommendation could be to invest in rehabilitation programs or those that help folks get jobs following a prison sentence.
+
+It is likely that taking a more humane approach than stricter sentencing laws will lead to a better vision for our society, and better outcomes for individuals. We recommend broadening this analysis so that all critical factors are taken into consideration.
