@@ -50,7 +50,7 @@ The following summarizes the different variables types based on the variable des
 
 1. Rates, averages, and probabilities - crime, probarr, probconv, probsen, avgsen, police, density, pctmin, mix, ymale
 2. $ variables - tax, wagecon, wagetuc, wagetrd, wagefir, wageser, wagemfg, wagefed, wagesta, wageloc
-3. Indicator variables - west, central, urban. No base categories are in the dataset (e.g. non-west/central, rural)
+3. Indicator variables - west, central, urban. No base categories are in the dataset (e.g. non-west/central, rural), which is expected, given that adding the base category will lead to perfect collinearity.
 4. Other miscellaneous variables - X, county, year
 
 The remaining EDA focuses the analysis on only the key variables of interest.
@@ -70,9 +70,9 @@ hist(log(data$crime), breaks=20,
 
 ### Probability of Conviction (probconv)
 
-Probconv seems to have values greater than 1.0, which is unexpected given that probability values are supposed to be between 0.0 to 1.0. The variable description does not seem to indicate how the variable is calculated. After discussing this in the lectures and office hours, we will assume that probconv values above 1.0 is okay, and that the higher the value, the higher the probabilty of conviction.
+Probconv seems to have values greater than 1.0, which is unexpected given that probability values are supposed to be between 0.0 to 1.0. The variable description does not seem to indicate how the variable is calculated. After discussing this in the lectures and office hours, we will assume that probconv values above 1.0 is okay, and that the higher the value, the higher the probabilty of conviction. Essentially, we will treat this variable as an odds variable.
 
-The histogram of probconv does not seem to look very normal. That said, taking the log of a probabilty does not seem to make sense from an interpretability perspective. For example, an "increase is 10% of probability" is not intuitively interpretable. As a result, for probconv no log transformation will be applied. It also does not look like other transforms would be suitable for this variable.
+The histogram of probconv does not seem to look very normal. That said, taking the log of a probabilty does not seem to make sense from an interpretability perspective. For example, an "increase is 10% of probability" is not intuitively interpretable. As a result, for probconv no log transformation will be applied. To improve interpretability, in the transformed dataset we will multiply this variable by 100.
 ```{r fig.height=3}
 summary(data$probconv)
 hist(data$probconv, breaks=50,
@@ -82,9 +82,9 @@ hist(data$probconv, breaks=50,
 
 ### Probability of Prison Sentence (probsen)
 
-Similarly, probsen seems to have values greater than 1.0, which is unexpected given that probability values are supposed to be between 0.0 to 1.0. After discussing this in the lectures and office hours, we will assume that probsen values above 1.0 is okay, and that the higher the value, the higher the probabilty of prison sentence.
+Similarly, probsen seems to have values greater than 1.0, which is unexpected given that probability values are supposed to be between 0.0 to 1.0. After discussing this in the lectures and office hours, we will assume that probsen values above 1.0 is okay, and that the higher the value, the higher the probabilty of prison sentence. Essentially, we will treat this variable as an odds variable.
 
-Also, similar to probconv, for probsen no log transformation will be applied. It also does not look like other transforms would be suitable for this variable.
+Also, similar to probconv, for probsen no log transformation will be applied. To improve interpretability, in the transformed dataset we will multiply this variable by 100.
 ```{r fig.height=3}
 summary(data$probsen)
 hist(data$probsen, breaks=50,
@@ -123,7 +123,7 @@ hist(log(data$density), breaks=20,
 
 ### Percentage of Minority, 1980 (pctmin)
 
-The data and histogram for pctmin looks expected. However, the data is between 0 - 100 whereas other percentage variables is between 0.0 and 1.0; We may want to transform this variable to keep things consistent from an interpretability perspective. This will be taken care of in the data transformation section.
+The data and histogram for pctmin looks expected. However, the data is between 0 - 100 whereas other percentage variables is between 0.0 and 1.0;
 ```{r fig.height=3}
 summary(data$pctmin)
 hist(data$pctmin, breaks=50,
@@ -156,12 +156,15 @@ data[data$X == 84,c("probsen", "wageser")]
 \pagebreak
 
 ## Transformed and Filtered Dataset
-Based on the univariate analysis, the following transformations were proposed, as well as removal of one data point per analysis in the previous section.
+Based on the univariate analysis, the following transformations were proposed, as well as removal of one data point per analysis in the previous section. As well, the percentage male and probabilities are normalized to 0 - 100 for better model interpretability.
 ```{r}
 data$log_crime = log(data$crime)
 data$log_police = log(data$police)
 data$log_density = log(data$density)
-data$pctmin = data$pctmin/100
+data$ymale = data$ymale * 100
+data$probsen = data$probsen * 100
+data$probconv = data$probconv * 100
+data$probarr = data$probarr * 100
 data = data[data$X != 84,]
 
 sort(colnames(data))
@@ -301,7 +304,7 @@ $$log(Crime Rate) = \beta_0 + {\beta_1}log(density)+ {\beta_2}conviction+ {\beta
 $$\hat{log(Crime Rate)} = \hat{\beta_0} + \hat{\beta_1}log(density)+ \hat{\beta_2}conviction+ \hat{\beta_3}sentencing+\hat{\beta_4}minority +\hat{\beta_5}log(police)$$
 
 ```{r}
-final_model2 = lm(log_crime ~ log_density + probsen + probconv  + pctmin+ log_police, data = data)
+final_model2 = lm(log_crime ~ log_density + probsen + probconv  + pctmin + log_police, data = data)
 se.final_model2 = sqrt(diag(vcovHC(final_model2)))
 ```
 
