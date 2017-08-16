@@ -9,14 +9,15 @@ output:
 ---
 
 #Section 1: Introduction
-The authors, Kim, Kiersten and Aaron, were hired to provide research for a political campaign in North Carolina to understand the determinants of crime (both correlational and causal) using exploratory data analysis and OLS regression. The end goal is to leverage the data to provide policy suggestions that are applicable to local government to reduce crime.
+The authors, Kim, Kiersten and Aaron, were hired to provide research for a political campaign in North Carolina to understand the determinants of crime (both correlational and causal) using exploratory data analysis and OLS regression. The end goal is to leverage the data to provide policy suggestions that are applicable to local government to reduce crime based on the available data we have. 
 
-The provided cross-sectional dataset consists of statistics for a selection of counties for a given year. Data for 90 counties and 25 variables for each county were provided. 
+The provided cross-sectional dataset consists of statistics for a selection of counties for a given year. Data for 90 counties and 25 variables for each county were provided. As part of this report, we will also make recommendations on what additional data would help better inform campaign recommendations, as there could be other variables that are currently not captured in the provided dataset.
 
 For this analysis, the following assumptions were made:
 
 * The 90 counties provided were randomly sampled among the 100 counties in North Carolina.
 
+Other assumptions will be called out in the remaining sections as appropriate.
 
 #Section 2: Exploratory Analysis
 
@@ -68,6 +69,8 @@ hist(log(data$crime), breaks=20,
      xlab="Log of crimes committed per person", cex=0.7)
 ```
 
+\pagebreak
+
 ### Probability of Conviction (probconv)
 
 Probconv seems to have values greater than 1.0, which is unexpected given that probability values are supposed to be between 0.0 to 1.0. The variable description does not seem to indicate how the variable is calculated. After discussing this in the lectures and office hours, we will assume that probconv values above 1.0 is okay, and that the higher the value, the higher the probabilty of conviction. Essentially, we will treat this variable as an odds variable.
@@ -79,6 +82,8 @@ hist(data$probconv, breaks=50,
      main="Histogram of Probability of Conviction",
      xlab="Probability of conviction")
 ```
+
+\pagebreak
 
 ### Probability of Prison Sentence (probsen)
 
@@ -120,6 +125,8 @@ hist(log(data$density), breaks=20,
      main="Hist of Log of people/Sq. Mile",
      xlab="Log of people per sq. mile")
 ```
+
+\pagebreak
 
 ### Percentage of Minority, 1980 (pctmin)
 
