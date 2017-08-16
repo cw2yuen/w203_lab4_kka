@@ -44,6 +44,8 @@ sort(colnames(data))
 data$wagedensity = log(data$wtotal/data$density)
 data$inv_logdensity = log(1/data$density)
 data$diff_wageden_den = data$wagedensity - data$inv_logdensity
+head(data$diff_wageden_den)
+
 #View(data)
 
 ```
@@ -116,6 +118,7 @@ abline(lm(data$crmrte_1K_log ~ data$prbarr))
 
 plot(data$prbconv,data$crmrte_1K_log, main="Log Crime rate 1K v.Prob. Conviction")
 abline(lm(data$crmrte_1K_log ~ data$prbconv))
+
 
 plot(data$prbpris,data$crmrte_1K_log, main="Log Crime rate 1K v. Prob. Prison")
 abline(lm(data$crmrte_1K_log ~ data$prbpris))
