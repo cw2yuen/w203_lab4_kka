@@ -75,7 +75,7 @@ hist(log(data$crime), breaks=20,
 
 Probconv seems to have values greater than 1.0, which is unexpected given that probability values are supposed to be between 0.0 to 1.0. The variable description does not seem to indicate how the variable is calculated. After discussing this in the lectures and office hours, we will assume that probconv values above 1.0 is okay, and that the higher the value, the higher the probabilty of conviction. Essentially, we will treat this variable as an odds variable.
 
-The histogram of probconv does not seem to look very normal. That said, taking the log of a probabilty does not seem to make sense from an interpretability perspective. For example, an "increase is 10% of probability" is not intuitively interpretable. As a result, for probconv no log transformation will be applied. To improve interpretability, in the transformed dataset we will multiply this variable by 100.
+The histogram of probconv does not seem to look very normal. That said, taking the log of a probabilty does not seem to make sense from an interpretability perspective. For example, an "increase of 10% in probability" is not intuitively interpretable. As a result, for probconv no log transformation will be applied. To improve interpretability, in the transformed dataset we will multiply this variable by 100.
 ```{r fig.height=3}
 summary(data$probconv)
 hist(data$probconv, breaks=50,
@@ -115,6 +115,7 @@ hist(log(data$police), breaks=20,
 ### People per Sq. Mile (density)
 
 Looking at the histogram of density, the distribution tends to be right skewed. Taking the log of density tends to make the histgram appear more normal. As a result, for our modeling, we will proceed with using log of density.
+
 ```{r fig.height=3}
 summary(data$density)
 par(mfrow=c(1,2))
@@ -130,7 +131,8 @@ hist(log(data$density), breaks=20,
 
 ### Percentage of Minority, 1980 (pctmin)
 
-The data and histogram for pctmin looks expected. However, the data is between 0 - 100 whereas other percentage variables is between 0.0 and 1.0;
+The data and histogram for pctmin looks as expected. However, the data is between 0 - 100 whereas other percentage variables is between 0.0 and 1.0.
+
 ```{r fig.height=3}
 summary(data$pctmin)
 hist(data$pctmin, breaks=50,
@@ -142,6 +144,7 @@ hist(data$pctmin, breaks=50,
 ## Wage variables (wage*)
 
 Looking at the histogram of the wage variables, there is no obvious case for supporting any transforms on the variables, since for most cases the distribution does not look very skewed.
+
 ```{r}
 par(mfrow=c(3,3))
 hist(data$wagecon, breaks=20, main="Hist of wagecon", xlab="wagecon", ylab="Frequency")
@@ -155,7 +158,8 @@ hist(data$wagesta, breaks=20, main="Hist of wagesta", xlab="wagesta", ylab="")
 hist(data$wageloc, breaks=20, main="Hist of wageloc", xlab="wageloc", ylab="")
 ```
 
-Focusing on wageser, there seems to be one data point that looks to be an extreme outlier. Looking further, it seems to be coming from data point 84. This data point has an extremely high value for probsen and wageser. For our model, we will remove this datapoint, as we have found that this data point tend to have high Cook's distance if we were to include it in our models.
+Focusing on wageser, there seems to be one data point that looks to be an extreme outlier. Looking further, it seems to be coming from data point 84. This data point has an extremely high value for probsen and wageser. For our model, we will remove this datapoint, as we have found that this data point tends to have high Cook's distance if we include it in our models.
+
 ```{r}
 data[data$X == 84,c("probsen", "wageser")]
 ```
@@ -169,7 +173,8 @@ There are only 8 of the 90 counties in NC that are included in our dataset are u
 sum(data$urban == 1)
 ```
 
-When we look at crime rate in urban vs rural counties, it appears about 3 times higher in urban counties than rural ones. However, note the urban sample is only 8 observations of 90. As a result, given the low number of urban samples in the dataset as well as the fact that we feel the log of density variable already captures at a more granularity level how urban or rural a county is, we decide not to leverage this indicator variable in our models. 
+When we look at crime rate in urban vs rural counties, it appears about 3 times higher in urban counties than rural ones. However, note the urban sample is only 8 observations of 90. As a result, given the low number of urban samples in the dataset as well as the fact that we feel the log of density variable already captures at a more granular level how urban or rural a county is, we decided not to leverage this indicator variable in our models. 
+
 ```{r fig.height=3.4}
 boxplot(data$crime ~ data$urban, ylab = "Crime Rate", 
         main = "Crime Rate in Rural versus Urban NC Counties", names=c("Rural", "Urban"))
@@ -182,7 +187,8 @@ boxplot(data$density ~ data$urban, ylab = "Density",
 \pagebreak
 
 ## Transformed and Filtered Dataset
-Based on the univariate analysis, the following transformations were proposed, as well as removal of one data point per analysis in the previous section. As well, the percentage male and probabilities are normalized to 0 - 100 for better model interpretability.
+Based on the univariate analysis, the following transformations were proposed, as well as removal of one data point as described in the previous section. As well, the percentage male and probabilities are normalized to 0 - 100 for better model interpretability.
+
 ```{r}
 data$log_crime = log(data$crime)
 data$log_police = log(data$police)
@@ -390,6 +396,7 @@ The adjusted R2 for model 1 is quite high for a social science study (0.65). How
 AIC(final_model1)
 ```
 
+\pagebreak
 
 ###Model 2: More Refined and More Robust than Model 1
 
@@ -447,10 +454,10 @@ To generate model 3, we added most of the other covariates from the dataset:
 $$log(Crime Rate) = \beta_0 + {\beta_1}log(density)+ {\beta_2}conviction+{\beta_3}sentencing+{\beta_4}arrests + {\beta_5}minority$$
 
 $$+{\beta_6}log(police) +{\beta_7}yougmale +{\beta_8}urban
-+ {\beta_9}tax +{\beta_10}wage con+{\beta_11}wage tuc+{\beta_12}wage trd$$
++ {\beta_9}tax +{\beta_{10}}wagecon+{\beta_{11}}wagetuc+{\beta_{12}}wage trd$$
 
-$$+{\beta_13}wage fir+{\beta_14}wage mfg+{\beta_15}wage fed+{\beta_16}wage sta
-+{\beta_17}wage loc+{\beta_18}wage ser + u$$
+$$+{\beta_{13}}wagefir+{\beta_{14}}wagemfg+{\beta_{15}}wagefed+{\beta_{16}}wagesta
++{\beta_{17}}wage loc+{\beta_{18}}wage ser + u$$
 
 
 We estimated the above equation by least ordinary squares regression to produce the linear model summarized in Table 1.
