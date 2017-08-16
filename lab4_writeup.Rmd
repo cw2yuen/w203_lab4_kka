@@ -94,7 +94,7 @@ hist(data$probsen, breaks=50,
 
 ### Police per Capita (police)
 
-Looking at the histogram of police, the distribution tends to be right skewed. Taking the log of police tends to make the histgram appear more normal. As a result, for our modeling, we will proceed with using log of police.
+Looking at the histogram of police, the distribution tends to be right skewed. Taking the log of police tends to make the histgram appear more normal. As a result, for our modeling, we will proceed with using log of police. As well, taking the log of police allows us to look at the elasticity between police and crime.
 ```{r fig.height=3}
 summary(data$police)
 par(mfrow=c(1,2))
@@ -155,6 +155,25 @@ data[data$X == 84,c("probsen", "wageser")]
 
 \pagebreak
 
+## Urban Indicator Variable
+
+There are only 8 of the 90 counties in NC that are included in our dataset are urban. 
+```{r}
+sum(data$urban == 1)
+```
+
+When we look at crime rate in urban vs rural counties, it appears about 3 times higher in urban counties than rural ones. However, note the urban sample is only 8 observations of 90. As a result, given the low number of urban samples in the dataset as well as the fact that we feel the log of density variable already captures at a more granularity level how urban or rural a county is, we decide not to leverage this indicator variable in our models. 
+```{r fig.height=3.4}
+boxplot(data$crime ~ data$urban, ylab = "Crime Rate", 
+        main = "Crime Rate in Rural versus Urban NC Counties", names=c("Rural", "Urban"))
+```
+```{r fig.height=3.4}
+boxplot(data$density ~ data$urban, ylab = "Density", 
+        main = "Density in Rural versus Urban NC Counties", names=c("Rural", "Urban"))
+```
+
+\pagebreak
+
 ## Transformed and Filtered Dataset
 Based on the univariate analysis, the following transformations were proposed, as well as removal of one data point per analysis in the previous section. As well, the percentage male and probabilities are normalized to 0 - 100 for better model interpretability.
 ```{r}
@@ -173,22 +192,95 @@ sort(colnames(data))
 
 ## Bi-variate analysis
 
-Looking at the correlation plot of the non-indicator variables, it looks like the following variables correlate with log of crime (last column in the plot) highly and positively:
+Looking at the correlation plot of the non-indicator variables, it looks like the following variables correlate with log of crime (first row in the plot) highly and positively:
 
-1. log of density - This makes sense since the crime rate tends to increase in more populated areas.
-2. tax - This makes sense since crime rate could increase in areas where there are more tax revenues collected.
-3. wage variables - This somewhat makes sense since as wages go up, there may be higher likelihood for crime. 
+1. Log of density
+2. Tax
+3. Wage variables
 
 It looks like the following variables correlate with log of crime (second-last column in the plot) highly and negatively:
 
-1. probconv - This makes sense since if the probability of convictions goes down, then there are more (potential) criminals out on the streets.
-2. probsen - This also makes sense since if the probability of sentencing goes down, then there are more (potential) criminals out on the streets.
+1. Probability of conviction
+2. Probability of sentencing
 
 ```{r fig.height=6.5}
-corrplot(cor(data[ , (names(data) %in% 
+corrplot(cor(data[ , 
                         c("log_crime", "probarr", "probconv", "probsen", "tax", "log_police", "log_density",
                           "pctmin", "ymale", "wagecon", "wagetuc", "wagetrd", "wagefir", "wageser", "wagemfg", 
-                          "wagefed", "wagesta", "wageloc", "mix"))]), method="circle", type="upper")
+                          "wagefed", "wagesta", "wageloc", "mix")]), method="circle", type="upper")
+```
+
+\pagebreak
+
+###Log of Density vs Log of Crime Rate
+
+As seen from the correlation plot, as well as the x-y plot below, there is a clear positive linear relationship between log of density and log of crime rate. Seeing a positive relationship makes sense, since the crime rate tends to increase in more populated areas.
+```{r}
+plot(data$log_density, data$log_crime,
+     main="Log of Density vs Log of Crime Rate", ylab="Log of Crime Rate", xlab="Log of Density")
+abline(lm(data$log_crime ~ data$log_density))
+```
+
+\pagebreak
+
+###Tax vs Log of Crime Rate
+
+Similar, as seen from the correlation plot, as well as the x-y plot below, there is a positive linear relationship between tax per capita and log of crime rate. Seeing a positive relationship also makes sense here since crime rate could increase in areas where there are more tax revenues collected.
+```{r}
+plot(data$tax, data$log_crime,
+     main="Tax per Capita vs Log of Crime Rate", ylab="Log of Crime Rate", xlab="Tax per Capita")
+abline(lm(data$log_crime ~ data$tax))
+```
+
+\pagebreak
+
+###Wages vs Log of Crime Rate
+
+From the correlation plot, as well as the individual x-y plots below of wages against log of crime rate, each of these seem to show some positive linear relationship. Seeing positive relationships here could be explained by the fact that crime rate could increase in areas where there are more tax revenues collected (and hence are counties with more wealth).
+```{r fig.height=5.5}
+par(mfrow=c(3,3))
+plot(data$wagecon, data$log_crime, main="wagecon vs log_crime", xlab="wagecon", ylab="Log of Crime Rate")
+abline(lm(data$log_crime ~ data$wagecon))
+plot(data$wagetuc, data$log_crime, main="wagetuc vs log_crime", xlab="wagetuc", ylab="")
+abline(lm(data$log_crime ~ data$wagetuc))
+plot(data$wagetrd, data$log_crime, main="wagetrd vs log_crime", xlab="wagetrd", ylab="")
+abline(lm(data$log_crime ~ data$wagetrd))
+plot(data$wagefir, data$log_crime, main="wagefir vs log_crime", xlab="wagefir", ylab="Log of Crime Rate")
+abline(lm(data$log_crime ~ data$wagefir))
+plot(data$wageser, data$log_crime, main="wageser vs log_crime", xlab="wageser", ylab="")
+abline(lm(data$log_crime ~ data$wageser))
+plot(data$wagemfg, data$log_crime, main="wagemfg vs log_crime", xlab="wagemfg", ylab="")
+abline(lm(data$log_crime ~ data$wagemfg))
+plot(data$wagefed, data$log_crime, main="wagefed vs log_crime", xlab="wagefed", ylab="Log of Crime Rate")
+abline(lm(data$log_crime ~ data$wagefed))
+plot(data$wagesta, data$log_crime, main="wagesta vs log_crime", xlab="wagesta", ylab="")
+abline(lm(data$log_crime ~ data$wagesta))
+plot(data$wageloc, data$log_crime, main="wageloc vs log_crime", xlab="wageloc", ylab="")
+abline(lm(data$log_crime ~ data$wageloc))
+```
+
+\pagebreak
+
+###Probability of Conviction vs Log of Crime Rate
+
+From the correlation plot, as well as the individual x-y plots below for probability of conviction vs log of crime rate, there tends to be a somewhat clear negatively linear relationship. This makes sense since if the probability of convictions goes down, then there are more (potential) criminals out on the streets.
+
+```{r}
+plot(data$probconv, data$log_crime,
+     main="Probability of Conviction vs Log of Crime Rate", ylab="Log of Crime Rate", xlab="Probability of Conviction")
+abline(lm(data$log_crime ~ data$probconv))
+```
+
+\pagebreak
+
+###Probability of Sentencing vs Log of Crime Rate
+
+Similarly, from the correlation plot, as well as the individual x-y plots below for probability of sentencing vs log of crime rate, there tends to be a negatively linear relationship. This also makes sense since if the probability of sentencing goes down, then there are more (potential) criminals out on the streets.
+
+```{r}
+plot(data$probsen, data$log_crime,
+     main="Probability of Sentencing vs Log of Crime Rate", ylab="Log of Crime Rate", xlab="Probability of Sentencing")
+abline(lm(data$log_crime ~ data$probsen))
 ```
 
 \pagebreak
