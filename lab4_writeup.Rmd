@@ -26,6 +26,7 @@ Reading the data and loading the right libraries:
 ```{r warning=FALSE, message=FALSE}
 library(car)
 library(corrplot)
+library(lmtest)
 library(sandwich)
 library(stargazer)
 
@@ -152,18 +153,14 @@ Focusing on wageser, there seems to be one data point that looks to be an extrem
 data[data$X == 84,c("probsen", "wageser")]
 ```
 
-### New Variables (X, Y, Z)
-
-*MORE HERE LATER*
+\pagebreak
 
 ## Transformed and Filtered Dataset
 Based on the univariate analysis, the following transformations were proposed, as well as removal of one data point per analysis in the previous section.
 ```{r}
 data$log_crime = log(data$crime)
-data$tot_wages = (data$wagecon + data$wagetuc + data$wagetrd + data$wagefir + data$wageser + data$wagemfg + data$wagefed + data$wagesta + data$wageloc)
 data$log_police = log(data$police)
 data$log_density = log(data$density)
-data$log_wagedensity = log(data$tot_wages/data$density)
 data$pctmin = data$pctmin/100
 data = data[data$X != 84,]
 
@@ -175,29 +172,29 @@ sort(colnames(data))
 
 Looking at the correlation plot of the non-indicator variables, it looks like the following variables correlate with log of crime (last column in the plot) highly and positively:
 
-1. density - This makes sense since the crime rate tends to increase in more populated areas.
+1. log of density - This makes sense since the crime rate tends to increase in more populated areas.
 2. tax - This makes sense since crime rate could increase in areas where there are more tax revenues collected.
 3. wage variables - This somewhat makes sense since as wages go up, there may be higher likelihood for crime. 
 
 It looks like the following variables correlate with log of crime (second-last column in the plot) highly and negatively:
 
-1. probconv - Makes sense since if probability of convictions go down, then there are more (potential) criminal out on the streets.
+1. probconv - This makes sense since if the probability of convictions goes down, then there are more (potential) criminals out on the streets.
+2. probsen - This also makes sense since if the probability of sentencing goes down, then there are more (potential) criminals out on the streets.
 
 ```{r fig.height=6.5}
 corrplot(cor(data[ , (names(data) %in% 
-                        c("log_crime", "probarr", "probconv", "probpris", "tax",
-                          "log_police", "density", "pctmin", "ymale","taxpc", 
-                          "wagecon", "wagetuc", "wagetrd", "wagefir", "wageser", "wagemfg", 
-                          "wagefed", "wagesta", "wageloc", "mix"))]), 
-                                           method="circle", type="upper")
+                        c("log_crime", "probarr", "probconv", "probsen", "tax", "log_police", "log_density",
+                          "pctmin", "ymale", "wagecon", "wagetuc", "wagetrd", "wagefir", "wageser", "wagemfg", 
+                          "wagefed", "wagesta", "wageloc", "mix"))]), method="circle", type="upper")
 ```
 
+\pagebreak
 
-###Model Specification and Assumptions
+#Section 3 - Model Specification and Assumptions
 
 In our exploratory analysis, we identified key independent variables that were positively and negatively correlated with log of crime rate. To create our first and simplest model that contains variables of key interest, we included the subset of these variables that we hyothesized might be the most important determinants of crime.
 
-It is "common knowlege" that areas with higher denisty have more crime, therefore we included log_density in our first model. In addition, we hypothesized that a high probability of arrest, sentencing and coviction would be deterrents of crime. While researching determinants of crime, we found that historically, one of the strongest determinants of crime has been the percent of young males in population, perhaps because they are the most likely perpetrators of crime. We therefore included this variable in our first model as well. In addition, we thought that higher taxes might increase the effectiveness of police and criminal justice capacities.
+It is "common knowledge" that areas with higher denisty have more crime, therefore we included log_density in our first model. In addition, we hypothesized that a high probability of arrest, sentencing and coviction would be deterrents of crime. While researching determinants of crime, we found that historically, one of the strongest determinants of crime has been the percent of young males in population, perhaps because they are the most likely perpetrators of crime. We therefore included this variable in our first model as well. In addition, we thought that higher taxes might increase the effectiveness of police and criminal justice capacities.
 
 $$log(Crime Rate) = \beta_0 + {\beta_1}log(density)+ {\beta_2}conviction+ {\beta_3}sentencing+{\beta_4}arrests +{\beta_5}tax+{\beta_6}young male + u$$
 
@@ -205,18 +202,13 @@ $$log(Crime Rate) = \beta_0 + {\beta_1}log(density)+ {\beta_2}conviction+ {\beta
 $$\hat{log(Crime Rate)} = \hat{\beta_0} + \hat{\beta_1}log(density)+ \hat{\beta_2}conviction+ \hat{\beta_3}sentencing+\hat{\beta_4}arrests +\hat{\beta_5}tax +\hat{\beta_6}youngmale$$
 
 
+
 ```{r}
 final_model1 = lm(log_crime ~ log_density + probsen + probconv + probarr + ymale + tax, data = data)
-final_model2 = lm(log_crime ~ log_density + probsen + probconv  + pctmin+ log_police, data = data)
-final_model3 = lm(log_crime ~ log_density + probsen + probconv + +probarr + ymale + tax + pctmin + log_police + urban + +wagecon+wagetuc+wagetrd+wagefir+wagemfg+wagefed+wagesta+wageloc+wageser, data = data)
-
 se.final_model1 = sqrt(diag(vcovHC(final_model1)))
-se.final_model2 = sqrt(diag(vcovHC(final_model2)))
-se.final_model3 = sqrt(diag(vcovHC(final_model3)))
-```
 ```
 
-In order to determine if our OLS coefficients will be unbiased estimates of the population parameters, we examined the six classic linear model assumptions.
+In order to determine if our OLS coefficients will be unbiased estimates of the population parameters, we examined the six classic linear model assumptions for model 1.
 
 ### CLM.1 - Linear in Parameters
 
@@ -235,6 +227,8 @@ From our EDA, it is apparent that none of our variables has constant values acro
 vif(final_model1)
 ```
 
+Thus, the MLR.3 assumption is met for our first model and all the other models we created.
+
 ### CLM.4 - Zero Conditional Mean
 
 By examining the residuals verus fitted values plot for our first model, we conclude that the assumption of zero conditional mean is met.  The red spline curve does not deviate much from zero.
@@ -242,6 +236,8 @@ By examining the residuals verus fitted values plot for our first model, we conc
 ```{r}
 plot(final_model1, which = 1)
 ```
+
+\pagebreak
 
 ### CLM.5 - Homoskedasticity
 
@@ -253,6 +249,7 @@ Despite this clear violation of CLM.5, we are able to proceed with our OLS model
 plot(final_model1, which = 3)
 ```
 
+\pagebreak
 
 ### CLM.6 - Normality of Residuals
 
@@ -266,7 +263,8 @@ We further examined the distribution of the residuals in model 1 in a histogram.
 
 
 ```{r}
-hist(final_model1$residuals, breaks = 50)
+hist(final_model1$residuals, breaks = 50, 
+     main="Histogram of Model 1 Residuals", xlab="Residual")
 ```
 
 
@@ -281,19 +279,18 @@ plot(final_model1, which=5)
 ###Conclusions from Examining CLM Assumptions and Interpretation of Model 1 Metrics
 
 ```{r}
-library(lmtest)
 coeftest(final_model1, vcov = vcovHC)
 ```
 
 
 As seen in the regression table (below), the F statistic for the omnibus test of model 1 is 28.2 with a statistically significant p value of < 2.2e-16. We therefore reject the null hypothesis that the omnibus test indicates that model 2 is not different from zero.
 
-The p values for the t tests for the coefficients on log_density, probconv, probsen, wer all < 0.001 and ymale and tax were less than 0.05. For each coefficient, we therefore reject the null hypothesis that the coefficient is equal to zero. Because we will give a detailed summary of the coefficients for our favored model 2 (below), we won't discuss the practical significance of all the coefficients in model1.
+The p values for the t tests for the coefficients on log_density, probconv, probsen, were all < 0.001 and ymale and tax were less than 0.05. For each coefficient, we therefore reject the null hypothesis that the coefficient is equal to zero. Because we will give a detailed summary of the coefficients for our favored model 2 (below), we won't discuss the practical significance of all the coefficients in model 1.
 
 The adjusted R2 for model 1 is quite high for a social science study - 0.65. However, the Akaike Information Criterion (AIC) is 58.8 - fairly large compared to other models.
 
 
-###Model 2: More Refined and more Robust than Model 1
+###Model 2: More Refined and More Robust than Model 1
 
 After creating our first model, we carefully considered how robust the coefficients were for the variables we had included. We considered whether any of the variables we had not included in model 1 could be considered "omitted variables" - meaning, were they both correlated with log(crime) and with at least one other independent variable? 
 
@@ -303,7 +300,10 @@ $$log(Crime Rate) = \beta_0 + {\beta_1}log(density)+ {\beta_2}conviction+ {\beta
 
 $$\hat{log(Crime Rate)} = \hat{\beta_0} + \hat{\beta_1}log(density)+ \hat{\beta_2}conviction+ \hat{\beta_3}sentencing+\hat{\beta_4}minority +\hat{\beta_5}log(police)$$
 
-
+```{r}
+final_model2 = lm(log_crime ~ log_density + probsen + probconv  + pctmin+ log_police, data = data)
+se.final_model2 = sqrt(diag(vcovHC(final_model2)))
+```
 
 ###Conclusions from Examining CLM Assumptions and Interpretation of Model 2 Coefficients
 
@@ -332,7 +332,7 @@ The coefficient for pctmin is 1.33. This suggests that for a one unit increase i
 
 The coefficient for log_police is 0.45. This suggests that for a one percentage point increase in police per capita, there is a 0.45 percent increase in crime rate.
 
-practical significance:
+*Practical significance:*
 
 The adjusted R2 for this model (0.83) is better than for model 1 (0.65). In addition the AIC for model 2 is -7.7, indicating that the model predicts a very large percent of the variability in crime rate while being highly parsimonious compared to model 1 whose AIC is 58.8.
 
@@ -341,10 +341,17 @@ The adjusted R2 for this model (0.83) is better than for model 1 (0.65). In addi
 
 To generate model 3, we added most of the other covariates from the dataset:
 
-$$log(Crime Rate) = \beta_0 + {\beta_1}log(density)+ {\beta_2}conviction+ {\beta_3}sentencing+{\beta_4}arrests + {\beta_5}minority +{\beta_6}log(police) +{\beta_7}yougmale +{\beta_8}urban + {\beta_9}tax +{\beta_10}wage_con +{\beta_11}wage_tuc+{\beta_12}wage_trd+{\beta_13}wage_fir+{\beta_14}wage_mfg+{\beta_15}wage_fed+{\beta_16}wage_sta+{\beta_17}wage_loc+{\beta_18}wage_ser + u$$
+$$log(Crime Rate) = \beta_0 + {\beta_1}log(density)+ {\beta_2}conviction+ {\beta_3}sentencing+{\beta_4}arrests + {\beta_5}minority 
++{\beta_6}log(police) +{\beta_7}yougmale +{\beta_8}urban + {\beta_9}tax +{\beta_10}wage_con +{\beta_11}wage_tuc+{\beta_12}wage_trd+{\beta_13}wage_fir+{\beta_14}wage_mfg+{\beta_15}wage_fed+{\beta_16}wage_sta+{\beta_17}wage_loc+{\beta_18}wage_ser + u$$
 
 $$\hat{log(Crime Rate)} = \hat{\beta_0} + \hat{\beta_1}log(density)+ \hat{\beta_2}conviction+  \hat{\beta_3}sentencing+ \hat{\beta_4}arrests +  \hat{\beta_5}minority + \hat{\beta_6}log(police) + \hat{\beta_7}yougmale + \hat{\beta_8}urban +  \hat{\beta_9}tax + \hat{\beta_10}wage_con + \hat{\beta_11}wage_tuc+ \hat{\beta_12}wage_trd+ \hat{\beta_13}wage_fir+ \hat{\beta_14}wage_mfg+ \hat{\beta_15}wage_fed+ \hat{\beta_16}wage_sta+ \hat{\beta_17}wage_loc+ \hat{\beta_18}wage_ser$$
 
+```{r}
+final_model3 = lm(log_crime ~ log_density + probsen + probconv + +probarr + ymale + tax + pctmin + 
+                  log_police + urban + wagecon + wagetuc + wagetrd + wagefir + wagemfg + wagefed +
+                  wagesta + wageloc + wageser, data = data)
+se.final_model3 = sqrt(diag(vcovHC(final_model3)))
+```
 
 ###Conclusions from Examining CLM Assumptions and Interpretation of Model 3
 
@@ -359,26 +366,28 @@ Another reason that we do not favor model 3 is that the coefficient for percent 
 
 ```{r}
 stargazer(final_model1, final_model2, final_model3,
-se=list(se.final_model1, se.final_model2, se.final_model3),star.cutoffs=c(0.05, 0.01, 0.001),title = "Regression Table for 3 Models", column.labels = c("Model1 - OK", "Model2 - Great", "Model3 - Kitchen Sink"))
+        se=list(se.final_model1, se.final_model2, se.final_model3),
+        star.cutoffs=c(0.05, 0.01, 0.001), title = "Regression Table for 3 Models", 
+        column.labels = c("Model1 - OK", "Model2 - Great", "Model3 - Kitchen Sink"),
+        type="text")
 ```
-
 
 
 ### Causality
 
-The proposed model indicates that harsher sentencing laws are the primary deterrent to crime, whereas police per capita does not improve the crime rate. While percentage minority does appear to have an impact on crime, the coefficient is small and the below analysis of omitted variables indicates that even this coefficient is likely overstated.
+The proposed model (model 2) indicates that harsher sentencing laws are the primary deterrent to crime, whereas police per capita does not improve the crime rate. While percentage minority does appear to have an impact on crime, the coefficient is small and the below analysis of omitted variables indicates that even this coefficient is likely overstated.
 
 A number of metrics that are likely present in the true population model for predicting crime are not available for this analysis, and this impacts the overall predictability of our model beyond the current dataset. Police per person is a key variable exhibiting the wrong sign. In theory, police should reduce crime rather than increase it (as is currently predicted in our model).  The below analysis of omitted variables underscores the complexity of assessing the impact of a police force among other factors on crime.
 
 _1. Police Profiling_ may increase the likelihood of minority groups and young males being arrested for crimes they do not commit. The coefficients of the pctmin and ymale variables are likely overstated without accounting for profiling.
 
-_2. Recidivism_ (the likelihood for people to become repeat offenders) is likely a very strong predictor of crime in specific regions. It would make sense that areas with higher crime overall, have higher incidences of recidivism, and therefore more police per capita. If recidivism and police per capita are positively correlated, then the police variable is absorbing some of the error term associated with the omitted variable, recidivism. Including this metric would likely help change the sign of the police variable; this would lead to a more intuitive model since police should be associated with reducing — not increasing — crime.
+_2. Recidivism_ (the likelihood for people to become repeat offenders) is likely a very strong predictor of crime in specific regions. It would make sense that areas with higher crime overall, have higher incidences of recidivism, and therefore more police per capita. If recidivism and police per capita are positively correlated, then the police variable is absorbing some of the error term associated with the omitted variable, recidivism. Including this metric would likely help change the sign of the police variable; this would lead to a more intuitive model since police should be associated with reducing (not increasing) crime.
 
 _3. Police Motivation_ may also have an impact on probability of arrest. For example, if crime is very prevalent in one area while convictions or sentences in that same area are low, police may feel that their efforts are not having an impact. This could have either a positive or negative impact on the probarr variable, though a negative impact is more likely as police are less inspired to pursue arrests. In this case, fewer arrests would be reported for each crime and this factor would be unaccounted for in the model.
 
 _4. Security_: Home security services such as ADT or Ring may reduce the prevalence of crime. Greater security around businesses (e.g. density of security guards) would have the same effect. Omitting these variables likely over-attributes crime reduction to stricter laws and more police than is accurate in the true population. Therefore probsen, probconv and police per capita are likely overstated in terms of reducing crime. (Note that this would make the police metric even more positive than it currently is). Additionally, with a security metric, the mix variable related to property crimes may have more meaning in the data.
 
-_5. The unemployment rate and education levels_ could help explain incidences of crime, and together these metrics may be better measures of socioeconomic status than total wages or tax per person. At the very least, one of the four metrics — or interactions between them — may allow socioeconomic status to have a significant role in the model.
+_5. The unemployment rate and education levels_ could help explain incidences of crime, and together these metrics may be better measures of socioeconomic status than total wages or tax per person. At the very least, one of the four metrics (or interactions between them) may allow socioeconomic status to have a significant role in the model.
 
 _6. Proximity to other high crime regions_ could be a notable factor to examine as well.  For example, a region with low density and high crime may be contiguous to another region with high density/high crime, helping to further explain the relationship between crime and density.
 
